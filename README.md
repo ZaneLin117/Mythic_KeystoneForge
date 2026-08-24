@@ -42,8 +42,8 @@ Keystone Forge（秘境路线工坊）是一款兼容 [Mythic Dungeon Tools（MD
 ### 安装并启动
 
 ```bash
-git clone --recurse-submodules <repository-url> keystone-forge
-cd keystone-forge
+git clone --recurse-submodules https://github.com/ZaneLin117/Mythic_KeystoneForge.git
+cd Mythic_KeystoneForge
 corepack yarn@1.22.22 install
 corepack yarn@1.22.22 dev
 ```

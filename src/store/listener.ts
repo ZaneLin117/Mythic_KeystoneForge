@@ -1,0 +1,259 @@
+﻿import type { Action } from '@reduxjs/toolkit'
+import { createListenerMiddleware, isAnyOf } from '@reduxjs/toolkit'
+import type { RootState } from './store.ts'
+import { addToast } from './reducers/toastReducer.ts'
+import { REHYDRATE } from 'redux-persist/es/constants'
+import { ActionCreators } from 'redux-undo'
+import {
+  backupCollabRoute,
+  deleteRoute,
+  duplicateRoute,
+  loadRoute,
+  newRoute,
+  removeInvalidSpawns,
+  restoreLiveBackup,
+  setDungeon,
+  setRouteForCollab,
+  setRouteFromMdt,
+  setRouteFromSample,
+  setRouteFromWcl,
+  updateSavedRoutes,
+} from './routes/routesReducer.ts'
+import { deleteUserRoute } from '../api/deleteUserRouteApi.ts'
+import {
+  endCollab,
+  joinCollab,
+  promoteSelfToHost,
+  selectLocalAwareness,
+  selectLocalAwarenessIsGuest,
+  setAwarenessStates,
+  startCollab,
+} from './collab/collabReducer.ts'
+import { dungeonsByKey } from '../data/dungeons.ts'
+import { setDrawColor } from './reducers/mapReducer.ts'
+import type { UnknownAction } from 'redux'
+import { selectActualRoute } from './routes/routeHooks.ts'
+import { importMdtRoute, importWclRoute } from './reducers/importReducer.ts'
+import { exitCompare } from './reducers/compareReducer.ts'
+import { trackEvent } from '../util/analytics.ts'
+import { translateCurrent } from '../i18n/i18n.tsx'
+
+export const listenerMiddleware = createListenerMiddleware()
+
+// on import route, send a toast
+listenerMiddleware.startListening({
+  actionCreator: setRouteFromMdt,
+  effect: async ({ payload: { mdtRoute, copy } }, listenerApi) => {
+    if (copy) {
+      const state = listenerApi.getState() as RootState
+      listenerApi.dispatch(
+        addToast({
+          message: translateCurrent('route.importedAs', {
+            name: mdtRoute.text,
+            route: state.routes.present.route.name,
+          }),
+        }),
+      )
+    } else {
+      listenerApi.dispatch(
+        addToast({ message: translateCurrent('route.imported', { name: mdtRoute.text }) }),
+      )
+    }
+  },
+})
+
+// on import route fail, send an error toast
+listenerMiddleware.startListening({
+  matcher: isAnyOf(importMdtRoute.rejected, importWclRoute.rejected),
+  effect: async ({ error }, listenerApi) => {
+    console.error((error as Error).stack)
+    listenerApi.dispatch(
+      addToast({
+        message: translateCurrent('route.importFailed', { message: (error as Error).message }),
+        type: 'error',
+      }),
+    )
+  },
+})
+
+// on rehydrate, clear history
+listenerMiddleware.startListening({
+  type: REHYDRATE,
+  effect: async (_action, listenerApi) => {
+    listenerApi.dispatch(restoreLiveBackup())
+    listenerApi.dispatch(ActionCreators.clearHistory())
+  },
+})
+
+// on new route, clear history, but save saved routes first
+listenerMiddleware.startListening({
+  matcher: isAnyOf(
+    setDungeon.fulfilled,
+    loadRoute.fulfilled,
+    duplicateRoute,
+    setRouteFromMdt,
+    setRouteFromWcl,
+    setRouteFromSample,
+    newRoute,
+  ),
+  effect: async (_action, listenerApi) => {
+    const state = listenerApi.getState() as RootState
+    const isGuest = selectLocalAwarenessIsGuest(state)
+    if (!isGuest) listenerApi.dispatch(updateSavedRoutes())
+    listenerApi.dispatch(ActionCreators.clearHistory())
+  },
+})
+
+// loading a different route is a clean slate
+listenerMiddleware.startListening({
+  matcher: isAnyOf(
+    setDungeon.fulfilled,
+    loadRoute.fulfilled,
+    deleteRoute.fulfilled,
+    duplicateRoute,
+    setRouteFromMdt,
+    setRouteFromWcl,
+    setRouteFromSample,
+    setRouteForCollab,
+    newRoute,
+  ),
+  effect: async (_action, listenerApi) => {
+    const state = listenerApi.getState() as RootState
+    if (state.compare.route) listenerApi.dispatch(exitCompare())
+  },
+})
+
+// on load route, verify mob spawns
+listenerMiddleware.startListening({
+  matcher: isAnyOf(
+    (action): action is Action => action.type === REHYDRATE,
+    loadRoute.fulfilled,
+    setRouteFromMdt,
+    setRouteFromSample,
+  ),
+  effect: async (_action, listenerApi) => {
+    const state = listenerApi.getState() as RootState
+    const route = state.routes.present.route
+    if (!route) return
+
+    const dungeon = dungeonsByKey[route.dungeonKey]
+    if (!dungeon) return
+
+    const missingIds = []
+    for (const pull of route.pulls) {
+      for (const spawnId of pull.spawns) {
+        const mobSpawn = dungeon.mobSpawns[spawnId]
+        if (mobSpawn) continue
+
+        missingIds.push(spawnId)
+      }
+    }
+
+    if (missingIds.length === 0) return
+
+    console.error(`Found invalid spawnIds in current route: ${missingIds.join(',')}`)
+    listenerApi.dispatch(removeInvalidSpawns(missingIds))
+    listenerApi.dispatch(
+      addToast({ message: translateCurrent('route.invalidEnemiesRemoved'), type: 'error' }),
+    )
+    listenerApi.dispatch(ActionCreators.clearHistory())
+  },
+})
+
+// if collab color changes, change draw color
+listenerMiddleware.startListening({
+  predicate: (action: Action, currentState, originalState) => {
+    if (!action.type.startsWith('collab/')) return false
+    const oldColor = selectLocalAwareness(originalState as RootState)?.color
+    const newColor = selectLocalAwareness(currentState as RootState)?.color
+    return !!newColor && oldColor !== newColor
+  },
+  effect: (_action, listenerApi) => {
+    const state = listenerApi.getState() as RootState
+    const localAwareness = selectLocalAwareness(state)
+    if (localAwareness?.color) listenerApi.dispatch(setDrawColor(localAwareness.color))
+  },
+})
+
+// on host promotion, send a toast
+listenerMiddleware.startListening({
+  predicate: (action: UnknownAction, currentState, originalState) => {
+    if (action.type === promoteSelfToHost.type) return action.payload === true
+    if (action.type !== setAwarenessStates.type) return false
+
+    const oldClientType = selectLocalAwareness(originalState as RootState)?.clientType
+    const newClientType = selectLocalAwareness(currentState as RootState)?.clientType
+    return oldClientType === 'guest' && newClientType === 'host'
+  },
+  effect: async (_, listenerApi) => {
+    listenerApi.dispatch(
+      addToast({ message: 'You have been promoted to the host of this collab.', type: 'info' }),
+    )
+  },
+})
+
+// on route delete, remove from Firestore
+listenerMiddleware.startListening({
+  actionCreator: deleteRoute.fulfilled,
+  effect: async ({ payload: { deletedRouteId } }, listenerApi) => {
+    const state = listenerApi.getState() as RootState
+    const uid = state.cloud.user?.uid
+    if (!uid) return
+    await deleteUserRoute(uid, deletedRouteId)
+  },
+})
+
+// Whenever route UID changes or collab starts, update backup
+listenerMiddleware.startListening({
+  predicate: (action: Action, currentState, originalState) => {
+    if (action.type === startCollab.type) return true
+
+    if (!action.type.startsWith('routes/')) return false
+    return (
+      (originalState as RootState).routes.present.route.uid !==
+      (currentState as RootState).routes.present.route.uid
+    )
+  },
+  effect: (_action, listenerApi) => {
+    listenerApi.dispatch(backupCollabRoute())
+  },
+})
+
+// Analytics: collab usage, split by who initiated the session
+listenerMiddleware.startListening({
+  matcher: isAnyOf(startCollab, joinCollab),
+  effect: (action) => {
+    trackEvent(action.type === startCollab.type ? 'collab_start' : 'collab_join')
+  },
+})
+
+// Check that guests aren't modifying things they shouldn't be
+listenerMiddleware.startListening({
+  predicate: (action: Action, currentState, originalState) => {
+    const isGuestCollab = selectLocalAwarenessIsGuest(currentState as RootState)
+    if (!isGuestCollab) return false
+
+    // This means the change was done by another client
+    if (action.type === setRouteForCollab.type) return false
+
+    const prevRoute = selectActualRoute(originalState as RootState)
+    const curRoute = selectActualRoute(currentState as RootState)
+    return (
+      prevRoute.uid !== curRoute.uid ||
+      prevRoute.name !== curRoute.name ||
+      prevRoute.dungeonKey !== curRoute.dungeonKey
+    )
+  },
+  effect: (action, listenerApi) => {
+    console.error(`Guest somehow made illegal changes with action ${JSON.stringify(action)}`)
+    listenerApi.dispatch(endCollab())
+    listenerApi.dispatch(
+      addToast({
+        message:
+          'An error occured and you were removed from the collab room. To rejoin use the "Rejoin last collab" button to the right of "Start Collab". This is a bug and should not happen, so please report it to the discord!',
+        type: 'error',
+        duration: 10_000,
+      }),
+    )
+  },
+})

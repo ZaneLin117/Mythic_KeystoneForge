@@ -1,0 +1,24 @@
+import express from 'express'
+import cors from 'cors'
+import { getWclRoute } from './wclRoute.ts'
+
+const app = express()
+
+app.use(express.json())
+
+app.use(cors())
+
+app.post('/api/wclRoute', async (req, res) => {
+  try {
+    const route = await getWclRoute(req.body.code, req.body.fightId)
+    res.json(route)
+  } catch (e) {
+    console.error(e)
+    res.status(422).send(e.message)
+  }
+})
+
+const { PORT = 6173 } = process.env
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})

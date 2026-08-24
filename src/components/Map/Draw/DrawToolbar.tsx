@@ -1,0 +1,133 @@
+﻿import { Button } from '../../Common/Button.tsx'
+import { PaintBrushIcon } from '@heroicons/react/24/solid'
+import { useAppDispatch, useRootSelector } from '../../../store/storeUtil.ts'
+import {
+  setDrawColor,
+  setDrawMode,
+  setDrawWeight,
+  setMapMode,
+} from '../../../store/reducers/mapReducer.ts'
+import { clearDrawings } from '../../../store/routes/routesReducer.ts'
+import { useCallback, useState } from 'react'
+import { keyText, shortcuts } from '../../../data/shortcuts.ts'
+import { useShortcut } from '../../../util/hooks/useShortcut.ts'
+import type { DropdownOption } from '../../Common/Dropdown.tsx'
+import { Dropdown } from '../../Common/Dropdown.tsx'
+import { WeightIcon } from '../../Common/Icons/WeightIcon.tsx'
+import { TrashIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { ColorGrid } from '../../Common/ColorGrid.tsx'
+import { TooltipStyled } from '../../Common/TooltipStyled.tsx'
+import { ClearIcon } from '../../Common/Icons/ClearIcon.tsx'
+import { isTouch } from '../../../util/dev.ts'
+import { useI18n } from '../../../i18n/useI18n.ts'
+
+type WeightOption = DropdownOption & { weight: number }
+
+const weightToOption = (weight: number): WeightOption => ({
+  id: weight.toString(),
+  content: `${weight}`,
+  weight,
+})
+
+const weightOptions: WeightOption[] = [1, 2, 3, 4, 8, 12, 16, 24].map(weightToOption)
+
+export function DrawToolbar() {
+  const dispatch = useAppDispatch()
+  const { t } = useI18n()
+  const { mapMode, drawMode, drawColor, drawWeight } = useRootSelector((state) => state.map)
+  const [isChoosingColor, setChoosingColor] = useState(false)
+
+  const isDrawing = mapMode === 'drawing'
+  const toggleDraw = useCallback(
+    () => dispatch(setMapMode(isDrawing ? 'editing' : 'drawing')),
+    [dispatch, isDrawing],
+  )
+  useShortcut(shortcuts.draw, toggleDraw)
+
+  const onChangeColor = useCallback(
+    (newColor: string) => {
+      setChoosingColor(false)
+      dispatch(setDrawColor(newColor))
+    },
+    [dispatch],
+  )
+
+  const isDeleting = drawMode === 'deleting'
+  const isErasing = drawMode === 'erasing'
+
+  return (
+    <div className="flex items-start gap-2 h-full">
+      <Button
+        twoDimensional={isDrawing}
+        color={isDrawing ? 'green' : 'red'}
+        Icon={PaintBrushIcon}
+        onClick={toggleDraw}
+        justifyStart
+        tooltip={t('action.draw', { shortcut: keyText(shortcuts.draw[0]!) })}
+        tooltipId="draw-tooltip"
+      />
+      {isDrawing && (
+        <div className="flex items-start gap-6 h-full">
+          <div className="flex items-start gap-2 h-full">
+            <Button
+              onClick={() => setChoosingColor((val) => !val)}
+              justifyStart
+              tooltip={t('action.lineColor')}
+              tooltipId="draw-color-tooltip"
+            >
+              <div
+                className="rounded-sm"
+                style={{ backgroundColor: drawColor, width: 20, height: 20 }}
+              />
+            </Button>
+            <Dropdown
+              buttonContent={<WeightIcon width={24} height={24} />}
+              options={weightOptions}
+              selected={weightToOption(drawWeight)}
+              onSelect={(option) => dispatch(setDrawWeight(option.weight))}
+              hideArrow
+              tooltip={t('action.lineWeight')}
+              tooltipId="draw-weight-tooltip"
+            />
+            <TooltipStyled
+              id="draw-color-tooltip"
+              isOpen={isChoosingColor}
+              clickable
+              place="bottom-start"
+              padding={8}
+              enabledOnMobile
+            >
+              <ColorGrid onSelectColor={onChangeColor} />
+            </TooltipStyled>
+          </div>
+          <div className="flex items-start gap-2 h-full">
+            {!isTouch && (
+              <Button
+                twoDimensional={isErasing}
+                color={isErasing ? 'green' : 'red'}
+                Icon={ClearIcon}
+                onClick={() => dispatch(setDrawMode(isErasing ? 'drawing' : 'erasing'))}
+                tooltip={t('action.eraseDrawing')}
+                tooltipId="erase-drawings-tooltip"
+              />
+            )}
+            <Button
+              twoDimensional={isDeleting}
+              color={isDeleting ? 'green' : 'red'}
+              Icon={XMarkIcon}
+              onClick={() => dispatch(setDrawMode(isDeleting ? 'drawing' : 'deleting'))}
+              tooltip={t('action.deleteDrawing')}
+              tooltipId="delete-drawings-tooltip"
+            />
+            <Button
+              Icon={TrashIcon}
+              onClick={() => dispatch(clearDrawings())}
+              tooltip={t('action.clearDrawings')}
+              tooltipId="clear-drawings-tooltip"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

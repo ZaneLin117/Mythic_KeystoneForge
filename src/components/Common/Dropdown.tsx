@@ -1,0 +1,256 @@
+import type { ButtonProps, ButtonTooltipProps } from './Button.tsx'
+import { Button } from './Button.tsx'
+import type { ReactNode } from 'react'
+import { useCallback, useRef, useState } from 'react'
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline'
+import { useOutsideClick } from '../../util/hooks/useOutsideClick.ts'
+import type { IconComponent } from '../../util/types.ts'
+import { ReactSortable } from 'react-sortablejs'
+import { TooltipStyled } from './TooltipStyled.tsx'
+
+export interface DropdownOption {
+  id: string
+  content: ReactNode
+  icon?: ReactNode
+}
+
+/** A second, attached button on each option, for an action other than selecting it. */
+export interface DropdownOptionAction<T extends DropdownOption> {
+  Icon: IconComponent
+  onClick: (option: T) => void
+  onHover?: (option: T | null) => void
+  isActive?: (option: T) => boolean
+  disabled?: (option: T) => boolean
+  tooltip?: ReactNode
+  tooltipId?: string
+}
+
+type Props<T extends DropdownOption> = {
+  options: T[]
+  onOpen?: () => void
+  onClose?: () => void
+  onSelect: (option: T) => any
+  onHover?: (option: T | null) => void
+  onReorder?: (options: T[]) => void
+  optionAction?: DropdownOptionAction<T>
+  selected?: T
+  buttonContent?: ReactNode
+  MainButtonIcon?: IconComponent
+  header?: ReactNode
+  className?: string
+  disabled?: boolean
+  hideArrow?: boolean
+} & Pick<ButtonProps, 'short' | 'twoDimensional' | 'outline'> &
+  ButtonTooltipProps
+
+const transitionDuration = 200
+
+export function Dropdown<T extends DropdownOption>({
+  selected,
+  options,
+  onOpen,
+  onClose,
+  onSelect,
+  onHover,
+  onReorder,
+  optionAction,
+  buttonContent,
+  MainButtonIcon,
+  header,
+  short,
+  outline,
+  twoDimensional,
+  className,
+  disabled,
+  hideArrow,
+  tooltip,
+  tooltipId,
+}: Props<T>) {
+  const [open, setOpen] = useState(false)
+  const [optionsVisible, setOptionsVisible] = useState(false)
+  const [fullyOpen, setFullyOpen] = useState(false)
+  const timeoutRef = useRef<NodeJS.Timeout>()
+
+  const handleClose = useCallback(() => {
+    if (!open && !optionsVisible) return
+
+    setFullyOpen(false)
+    setOptionsVisible(false)
+    timeoutRef.current = setTimeout(() => {
+      setOpen(false)
+    }, transitionDuration)
+    onClose?.()
+  }, [onClose, open, optionsVisible])
+
+  const ref = useOutsideClick(handleClose)
+
+  const toggleOpen = useCallback(() => {
+    clearTimeout(timeoutRef.current)
+    if (!optionsVisible) {
+      setOpen(true)
+      setTimeout(() => setOptionsVisible(true), 0)
+      setTimeout(() => setFullyOpen(true), transitionDuration)
+      onOpen?.()
+    } else {
+      handleClose()
+    }
+  }, [handleClose, onOpen, optionsVisible])
+
+  const selectOption = useCallback(
+    (option: T) => {
+      let shouldClose = true
+      if (option.id !== selected?.id) {
+        const res = onSelect(option)
+        if (res === false) shouldClose = false
+      }
+      if (shouldClose) handleClose()
+    },
+    [handleClose, onSelect, selected?.id],
+  )
+
+  const ChevronIcon = optionsVisible ? ChevronUpIcon : ChevronDownIcon
+
+  return (
+    <div ref={ref} className={`relative flex-1 min-w-0 h-full ${className ?? ''}`}>
+      <Button
+        twoDimensional={twoDimensional}
+        short={short}
+        outline={outline}
+        onClick={toggleOpen}
+        Icon={MainButtonIcon}
+        disabled={disabled}
+        className={`dropdown-main 
+                    ${optionsVisible ? 'options-visible' : ''} 
+                    ${className ?? ''}`}
+        tooltip={tooltip}
+        tooltipId={tooltipId!}
+        style={{
+          transitionDuration: transitionDuration.toString(),
+          ...(optionsVisible
+            ? {
+                borderBottomLeftRadius: 0,
+                borderBottomRightRadius: 0,
+              }
+            : {}),
+        }}
+      >
+        {buttonContent ? (
+          buttonContent
+        ) : (
+          <>
+            {selected?.icon && <div className="mr-1">{selected?.icon}</div>}
+            {selected?.content ? (
+              <div className="dropdown-main-text">{selected?.content}</div>
+            ) : null}
+            {!hideArrow && (
+              <ChevronIcon
+                width={24}
+                height={24}
+                className={`ml-auto ${disabled ? 'invisible' : ''}`}
+              />
+            )}
+          </>
+        )}
+      </Button>
+
+      <div
+        className={`absolute w-full z-50 ${open ? '' : 'hidden'}`}
+        style={{ marginTop: twoDimensional ? 0 : -3 }}
+      >
+        <div className="flex flex-col">
+          {header && (
+            <div className={`dropdown-header ${optionsVisible ? 'options-visible' : ''}`}>
+              {header}
+            </div>
+          )}
+          <ReactSortable
+            className="flex flex-col relative overflow-auto h-fit"
+            disabled={onReorder === undefined}
+            list={options}
+            setList={(newOptions) => {
+              if (!onReorder) return
+              if (newOptions.every((newOption, idx) => newOption.id === options[idx]!.id)) return
+
+              onReorder?.(newOptions)
+            }}
+            delay={100}
+            delayOnTouchOnly
+          >
+            {options.map((option) => (
+              <Button
+                key={option.id}
+                className={`dropdown-option ${optionsVisible ? 'options-visible' : ''}`}
+                twoDimensional
+                outline={outline}
+                onClick={() => selectOption(option)}
+                onTouchEnd={() => selectOption(option)}
+                onMouseEnter={() => {
+                  if (!fullyOpen) return
+                  onHover?.(option)
+                }}
+                onMouseLeave={(e) => {
+                  if (!fullyOpen) return
+                  if ((e.relatedTarget as Element)?.closest?.('.dropdown-option')) return
+                  onHover?.(null)
+                }}
+              >
+                {option.icon && <div className="mr-1">{option.icon}</div>}
+                <div className="dropdown-option-text w-full">{option.content}</div>
+                {optionAction && (
+                  <OptionAction action={optionAction} option={option} fullyOpen={fullyOpen} />
+                )}
+              </Button>
+            ))}
+          </ReactSortable>
+        </div>
+      </div>
+      {optionAction?.tooltip && optionAction.tooltipId && (
+        <TooltipStyled id={optionAction.tooltipId} place="left">
+          {optionAction.tooltip}
+        </TooltipStyled>
+      )}
+    </div>
+  )
+}
+
+interface OptionActionProps<T extends DropdownOption> {
+  action: DropdownOptionAction<T>
+  option: T
+  fullyOpen: boolean
+}
+
+function OptionAction<T extends DropdownOption>({
+  action,
+  option,
+  fullyOpen,
+}: OptionActionProps<T>) {
+  const { Icon, isActive, disabled, tooltipId } = action
+  const isDisabled = disabled?.(option) ?? false
+
+  return (
+    <div
+      role="button"
+      tabIndex={-1}
+      data-tooltip-id={isDisabled ? undefined : tooltipId}
+      className={`dropdown-option-action
+                  ${isActive?.(option) ? 'active' : ''}
+                  ${isDisabled ? 'disabled' : ''}`}
+      onClick={(e) => {
+        e.stopPropagation()
+        if (!isDisabled) action.onClick(option)
+      }}
+      onTouchEnd={(e) => {
+        e.stopPropagation()
+        if (!isDisabled) action.onClick(option)
+      }}
+      onMouseEnter={() => {
+        if (!isDisabled && fullyOpen) action.onHover?.(option)
+      }}
+      onMouseLeave={() => {
+        if (!isDisabled && fullyOpen) action.onHover?.(null)
+      }}
+    >
+      <Icon width={18} height={18} />
+    </div>
+  )
+}

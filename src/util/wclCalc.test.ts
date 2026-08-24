@@ -1,0 +1,313 @@
+import { describe, expect, it, vi } from 'vitest'
+import type { MapBoundsByUiMapId } from '../data/coordinates/mapBoundsUncompiled.ts'
+import type { MapOffset } from '../data/coordinates/mdtMapOffsets.ts'
+
+// Most fixtures here are Season 1 fights, and both coordinate tables have since been regenerated
+// for the current season without keeping the S1 map ids. Layer the S1 entries back on so those
+// fixtures still resolve positions — see s1Coordinates.ts. Current-season ids are untouched, and
+// the two id sets don't overlap.
+vi.mock('../data/coordinates/mapBounds.ts', async (importOriginal) => {
+  const actual = (await importOriginal()) as { mapBounds: MapBoundsByUiMapId }
+  const { s1MapBounds } = await import('./__fixtures__/s1Coordinates.ts')
+  return { mapBounds: { ...actual.mapBounds, ...s1MapBounds } }
+})
+
+vi.mock('../data/coordinates/mdtMapOffsets.ts', async (importOriginal) => {
+  const actual = (await importOriginal()) as { mdtMapOffsets: Record<number, MapOffset> }
+  const { s1MdtMapOffsets } = await import('./__fixtures__/s1Coordinates.ts')
+  return { mdtMapOffsets: { ...actual.mdtMapOffsets, ...s1MdtMapOffsets } }
+})
+
+import {
+  resolveInstances,
+  wclEventKey,
+  wclResultToRoute,
+  type WclResult,
+  type WclTrace,
+} from './wclCalc.ts'
+import { s1Dungeons } from './__fixtures__/s1Dungeons.ts'
+import lvzFixture from './__fixtures__/wclRoute-LvZWMHBf3zrk9nFN-12.json'
+import gqwFixture from './__fixtures__/wclRoute-gqw4y97LcfAFnHBX-9.json'
+import kv3Fixture from './__fixtures__/wclRoute-kv3rTjxn2XLQpwKf-9.json'
+import cftFixture from './__fixtures__/wclRoute-CfTcvG8NAj3xY7BD-6.json'
+import tfkFixture from './__fixtures__/wclRoute-tfKGMcnvPJVhw1y2-1.json'
+import byxFixture from './__fixtures__/wclRoute-byxFGKhMgkAcPp6V-21.json'
+import rgpFixture from './__fixtures__/wclRoute-rGPCqaDyQmJbBLfX-9.json'
+import sixpmFixture from './__fixtures__/wclRoute-6pMc2dJHBh1Q8rGF-13.json'
+import bpaFixture from './__fixtures__/wclRoute-bPaQhZ8RnJYcDqFv-1.json'
+
+// These fixtures are Season 1 fights, whose dungeon data is no longer shipped. Inject the
+// snapshotted S1 dungeon (resolved by encounter id) via wclResultToRoute's `dungeon` param.
+const toRoute = (fixture: unknown, maxPasses?: number, trace?: WclTrace) => {
+  const wclResult = fixture as WclResult
+  return wclResultToRoute(wclResult, maxPasses, trace, s1Dungeons[wclResult.encounterID])
+}
+
+// Regression test: two lone Deathwhisper Necrolytes (raw events 20 and 33) each fell to
+// calculateCompositionPull's exact-cover search, which ranked the several identical necrolyte groups
+// (same composition, different locations) by distance to the pooled pull centroid. In a pull whose
+// leftovers span two locations, that centroid sits between them, leaving two identical groups nearly
+// equidistant — so the search claimed the one a hair nearer the centroid (group 52, 35 units from
+// event 20) over the one the event sits right on (group 28, 1 unit away). That in turn forced the
+// second necrolyte (event 33, 7 units from group 52) onto the leftover far group 28. Ranking
+// candidate groups by proximity to the nearest event they'd actually claim puts each necrolyte on
+// its own group.
+describe('wclResultToRoute — identical whole groups ranked by nearest covered event', () => {
+  it('claims the necrolyte group the event sits on, not a farther identical one', () => {
+    const { route, errors } = toRoute(kv3Fixture)
+    expect(errors).toEqual([])
+
+    const pullOf = (spawn: string) => route.pulls.find((pull) => pull.spawns.includes(spawn))
+
+    // Group 28's necrolyte (1-4) sits right on event 20; it must own that group's whole cover.
+    expect(pullOf('1-4')?.spawns).toEqual(expect.arrayContaining(['2-9', '2-10', '2-11', '3-4']))
+    // Group 52's necrolyte (1-3) sits on event 33; it must own group 52, not the far group 28.
+    expect(pullOf('1-3')?.spawns).toEqual(expect.arrayContaining(['2-6', '2-7', '2-8', '3-3']))
+    // The two necrolytes land in different pulls (not both swept into one).
+    expect(pullOf('1-4')).not.toBe(pullOf('1-3'))
+  })
+})
+
+// Regression test: two Tormented Shades (raw events 80 and 82) each sit 4-5 units from a separate
+// single-shade spawn group (15-2, 15-4), but calculateCompositionPull's exact-cover search claimed
+// them both for group 92 — a two-shade group 41-50 units away — because getPulledGroups prefers the
+// largest group first and one 2-shade group covers both shades in a single claim. Validating that a
+// clean cover's groups actually sit on their events (rejecting it when an event belongs to a
+// markedly nearer eligible group) sends this to the partial fallback, which claims the near
+// singletons instead.
+describe('wclResultToRoute — exact cover rejected when a larger group is farther than singletons', () => {
+  it('claims the two near single-shade groups, not the far two-shade group', () => {
+    const { route, errors } = toRoute(cftFixture)
+    expect(errors).toEqual([])
+
+    const pullOf = (spawn: string) => route.pulls.find((pull) => pull.spawns.includes(spawn))
+
+    // The near single-shade groups the events sit on are claimed...
+    expect(pullOf('15-2')).toBeDefined()
+    expect(pullOf('15-4')).toBeDefined()
+    // ...and the far two-shade group 92 (15-14, 15-15) is not swept in by composition.
+    expect(pullOf('15-14')).toBeUndefined()
+    expect(pullOf('15-15')).toBeUndefined()
+  })
+})
+
+// Regression test: WCL split the Spindleweb Hatchlings (gameId 234673) across two actors (229 and
+// 232) that each number their instances from 1, so both have instances 1-6. resolveInstances keyed
+// candidates on (gameId, instanceId), collapsing each colliding pair into one mob and dropping the
+// other. Keying on (actorId, instanceId) keeps them distinct.
+describe('wclResultToRoute — mob split across actors with overlapping instance numbers', () => {
+  it('resolves each (actorId, instanceId) as its own mob instead of collapsing the collision', () => {
+    const wclResult = gqwFixture as unknown as WclResult
+    const dungeon = s1Dungeons[wclResult.encounterID]!
+
+    const hatchlings = wclResult.events.filter((event) => event.gameId === 234673)
+    // Sanity: the fixture really has the split — both actors, with overlapping instance numbers.
+    expect(new Set(hatchlings.map((event) => event.actorId))).toEqual(new Set([229, 232]))
+    const distinctMobs = new Set(hatchlings.map((event) => `${event.actorId}-${event.instanceId}`))
+
+    const resolved = resolveInstances(wclResult.events, dungeon, wclResult.deathEvents)
+    const resolvedMobs = new Set(
+      resolved
+        .filter(({ winner }) => winner.gameId === 234673)
+        .map(({ winner }) => `${winner.actorId}-${winner.instanceId}`),
+    )
+
+    // Every distinct hatchling survives resolution — a (gameId, instanceId) key would drop the
+    // instance-1..6 collisions between the two actors.
+    expect(resolvedMobs).toEqual(distinctMobs)
+  })
+})
+
+// Whole-route snapshots: capture the full pull-by-pull output for real WCL fights so any change to
+// the composition passes surfaces as a reviewable diff. Update deliberately with `vitest -u` after
+// confirming a change is intended. Each snapshot is keyed to a fixture whose bug fixes are covered
+// by the targeted tests above.
+describe('wclResultToRoute — full route pull snapshots', () => {
+  it('LvZWMHBf3zrk9nFN-12 (Magister) pulls', () => {
+    const { route, errors } = toRoute(lvzFixture)
+    expect(errors).toEqual([])
+    expect(route.pulls).toMatchSnapshot()
+  })
+
+  it('gqw4y97LcfAFnHBX-9 (Windrunner) pulls', () => {
+    const { route, errors } = toRoute(gqwFixture)
+    expect(errors).toEqual([])
+    expect(route.pulls).toMatchSnapshot()
+  })
+
+  it('kv3rTjxn2XLQpwKf-9 (Pit) pulls', () => {
+    const { route, errors } = toRoute(kv3Fixture)
+    expect(errors).toEqual([])
+    expect(route.pulls).toMatchSnapshot()
+  })
+
+  it('CfTcvG8NAj3xY7BD-6 (Maisara Caverns) pulls', () => {
+    const { route, errors } = toRoute(cftFixture)
+    expect(errors).toEqual([])
+    expect(route.pulls).toMatchSnapshot()
+  })
+
+  it('tfKGMcnvPJVhw1y2-1 (Magister 2) pulls', () => {
+    const { route, errors } = toRoute(tfkFixture)
+    expect(errors).toEqual([])
+    expect(route.pulls).toMatchSnapshot()
+  })
+
+  it('byxFGKhMgkAcPp6V-21 (Maisara Caverns 2) pulls', () => {
+    const { route, errors } = toRoute(byxFixture)
+    expect(errors).toEqual([])
+    expect(route.pulls).toMatchSnapshot()
+  })
+
+  it('rGPCqaDyQmJbBLfX-9 (Magister 3) pulls', () => {
+    const { route, errors } = toRoute(rgpFixture)
+    expect(errors).toEqual([])
+    expect(route.pulls).toMatchSnapshot()
+  })
+
+  it('6pMc2dJHBh1Q8rGF-13 (Windrunner 2) pulls', () => {
+    const { route, errors } = toRoute(sixpmFixture)
+    expect(errors).toEqual([])
+    expect(route.pulls).toMatchSnapshot()
+  })
+})
+
+// Regression test for a bug where a swarm of same-mob-type events (24x Brightscale Wyrm, raw
+// event ids 40-63) fell through every composition pass to the byNearestSpawn last resort, even
+// though two whole MDT groups (spawn groups 20 and 21, 12 wyrms each) cleanly cover them. The
+// cause: calculateCompositionPull required its ENTIRE remaining event pool to compose to zero,
+// including two unrelated singleton bosses (Arcane Magister, Lightward Healer) dying in the same
+// window that no group could also cover — so the whole match bailed instead of claiming the part
+// it could confidently solve.
+describe('wclResultToRoute — Brightscale Wyrm swarm composition', () => {
+  it('assigns the swarm via a composition pass, not the byNearestSpawn last resort', () => {
+    const wclResult = lvzFixture as unknown as WclResult
+    const trace: WclTrace = new Map()
+
+    const { errors } = toRoute(wclResult, undefined, trace)
+    expect(errors).toEqual([])
+
+    const swarmEvents = wclResult.events.filter(
+      (event) => event.gameId === 232106 && event.id! >= 40 && event.id! <= 63,
+    )
+    expect(swarmEvents).toHaveLength(24)
+
+    for (const event of swarmEvents) {
+      const entry = trace.get(wclEventKey(event))
+      expect(entry?.status).toBe('assigned')
+      expect(entry?.passName).not.toBe('byNearestSpawn')
+    }
+
+    // All 24 should land in the same pull, assigned as one clean composition match.
+    const pullIndices = new Set(swarmEvents.map((event) => trace.get(wclEventKey(event))?.pullIdx))
+    expect(pullIndices.size).toBe(1)
+  })
+})
+
+// Regression test for a bug introduced by the fix above: calculateCompositionPull's partial
+// fallback claimed groups by composition alone, with no check that the matched events were
+// actually near each other. Raw event ids 72, 73, 75, 77 (2x Sunblade Enforcer, Lightward Healer,
+// Spellwoven Familiar) happen to match MDT spawn group 14's composition exactly, but they're real
+// kills scattered ~90-110 units away from group 14's location and up to ~14s apart — a coincidence,
+// not a group. The fallback must reject a claim whose matched events sit farther than
+// CONFIDENT_CLAIM_MAX_DISTANCE from the group instead of stitching them together.
+describe('wclResultToRoute — coincidental composition match across scattered kills', () => {
+  it('does not stitch distant, unrelated kills into a whole-group match on composition alone', () => {
+    const wclResult = lvzFixture as unknown as WclResult
+    const trace: WclTrace = new Map()
+
+    const { errors } = toRoute(wclResult, undefined, trace)
+    expect(errors).toEqual([])
+
+    const scatteredEventIds = [72, 73, 75, 77]
+    const events = wclResult.events.filter((event) => scatteredEventIds.includes(event.id!))
+    expect(events).toHaveLength(4)
+
+    const passNames = events.map((event) => trace.get(wclEventKey(event))?.passName)
+    expect(passNames).not.toEqual([
+      'byComposition',
+      'byComposition',
+      'byComposition',
+      'byComposition',
+    ])
+  })
+})
+
+// Regression test: a seam-ambiguous Arcane Magister (raw event 74 on map 2516, whose true position
+// is its other-map candidate event 69 — 6 units from spawn group 25's Magister + 2 Enforcers) was
+// being pulled into MDT group 27 (Magister + Spellbreaker + Familiar) by calculateCompositionPull's
+// composition fallback. The magister's event sits 37 units from group 27 but only ~6 from group 25,
+// so it should complete group 25 (with its two enforcers, events 70/71), not group 27. Grabbing it
+// for group 27 also scattered group 25's enforcers to byNearestSpawn and left the *later* real
+// group-27 magister (event 78, killed 60s afterward) to steal group 25's magister spawn 1-9.
+//
+// Correct outcome: Magister spawn 1-9 lands with its two enforcers (18-12, 18-13) as group 25,
+// while group 27's magister spawn 1-11 is claimed on its own by the later kill (event 78).
+describe('wclResultToRoute — seam-ambiguous magister claimed by the nearer group', () => {
+  it('completes group 25 with the magister, leaving group 27 magister on its own', () => {
+    const wclResult = lvzFixture as unknown as WclResult
+
+    const { route, errors } = toRoute(wclResult)
+    expect(errors).toEqual([])
+
+    const pullOf = (spawn: string) => route.pulls.find((pull) => pull.spawns.includes(spawn))
+
+    // Group 25 (Magister 1-9 + Enforcers 18-12, 18-13) must land together in one pull.
+    const g25Pull = pullOf('1-9')
+    expect(g25Pull?.spawns).toContain('18-12')
+    expect(g25Pull?.spawns).toContain('18-13')
+
+    // Group 27's magister (1-11) is the later, separate kill — on its own in its pull.
+    const g27MagisterPull = pullOf('1-11')
+    expect(g27MagisterPull?.spawns).toEqual(['1-11'])
+  })
+})
+
+// This fight is a current-season Temple of Sethraliss run, so it uses the shipped dungeon data
+// rather than the S1 snapshot. It contains eight CC applications, which between them cover every
+// case the detection rule has to separate:
+//
+//   Paralysis  Storm Adept 3        90.2 -> 148.6s   58.4s  pull  1 -> 2   marked
+//   Blind      Brood Tender 3      584.2 -> 584.7s    0.5s  (stop)         rejected
+//   Blind      Brood Tender 3      645.4 -> 646.0s    0.6s  (stop)         rejected
+//   Blind      Venomous Ophidian 4 833.2 -> 833.9s    0.7s  (uncountable)  not even fetched
+//   Paralysis  Imbued Stormcaller 1 889.7 -> 935.1s  45.4s  pull  8 -> 9   marked
+//   Paralysis  Imbued Stormcaller 3 975.8 -> 1018.6s 42.8s  pull  9 -> 11  marked
+//   Paralysis  Temple Disruptor 2  1314.8 -> 1325.6s 10.8s  pull 14 -> 14  rejected
+//   Paralysis  Temple Disruptor 4  1366.7 -> 1426.7s 60.0s  pull 15 -> 17  marked
+//
+// The Temple Disruptor at 1314.8s is the interesting rejection: a real Paralysis, but it broke
+// after 10.8s and the mob stayed in its group's pull, so it never separated anything.
+describe('wclResultToRoute — CC that held a mob out of its pull', () => {
+  it('marks only the CCs whose mob was taken in a later pull', () => {
+    const { route, errors } = wclResultToRoute(bpaFixture as unknown as WclResult)
+    expect(errors).toEqual([])
+
+    expect(route.ccSpawns).toEqual({
+      '3-6': 115078,
+      '15-6': 115078,
+      '15-1': 115078,
+      '45-2': 115078,
+    })
+
+    // Each marked mob was taken in its own later pull — the separation the rule detects. Three of
+    // the four are the only mob in their pull; the Storm Adept was taken with the Adderis/Aspix.
+    const pullIdxOf = (spawnId: string) =>
+      route.pulls.findIndex((pull) => pull.spawns.includes(spawnId))
+    expect(pullIdxOf('3-6')).toBe(2)
+    expect(pullIdxOf('15-1')).toBe(9)
+    expect(pullIdxOf('15-6')).toBe(11)
+    expect(pullIdxOf('45-2')).toBe(17)
+
+    // The 10.8s Temple Disruptor sits in pull 14 alongside its whole group, so neither of that
+    // pull's disruptor spawns may be marked.
+    for (const spawnId of route.pulls[14]!.spawns) {
+      expect(route.ccSpawns![spawnId]).toBeUndefined()
+    }
+  })
+
+  it('omits ccSpawns entirely for a fight with no qualifying CC', () => {
+    const { route } = toRoute(lvzFixture)
+    expect(route.ccSpawns).toBeUndefined()
+  })
+})

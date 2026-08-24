@@ -1,0 +1,250 @@
+import type { DropdownOption } from '../../Common/Dropdown.tsx'
+import { Dropdown } from '../../Common/Dropdown.tsx'
+import { useCallback, useMemo, useState } from 'react'
+import type { SampleRoute } from '../../../util/types.ts'
+import { useSampleRoutes } from '../../../util/hooks/useSampleRoutes.ts'
+import { setPreviewRouteAsync } from '../../../store/reducers/importReducer.ts'
+import {
+  ArrowPathIcon,
+  ArrowTopRightOnSquareIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline'
+import { setRouteFromSample } from '../../../store/routes/routesReducer.ts'
+import { addToast } from '../../../store/reducers/toastReducer.ts'
+import {
+  useActualCompareRoute,
+  useActualRoute,
+  useDungeon,
+} from '../../../store/routes/routeHooks.ts'
+import { useCompareOptionAction } from '../../Compare/useCompareOptionAction.ts'
+import { useAppDispatch } from '../../../store/storeUtil.ts'
+import { classColors } from '../../../util/colors.ts'
+import {
+  pickSpecRankings,
+  pickTopRankings,
+  pickVariedComps,
+  type Spec,
+  tankSpecs,
+  type WclRankingTeamMember,
+} from '../../../util/wclRankings.ts'
+import { trackEvent } from '../../../util/analytics.ts'
+import { useI18n } from '../../../i18n/useI18n.ts'
+
+type SampleRouteOption = SampleRoute & DropdownOption
+
+const filterModes = ['varied', 'top', 'easy', 'spec'] as const
+type FilterMode = (typeof filterModes)[number]
+
+interface Props {
+  hidden?: boolean
+}
+
+const roleToNum = (role: WclRankingTeamMember['role']) =>
+  role === 'Tank' ? 0 : role === 'Healer' ? 1 : 2
+
+function sortTeam(member1: WclRankingTeamMember, member2: WclRankingTeamMember) {
+  if (member1.role !== member2.role) {
+    return roleToNum(member1.role) - roleToNum(member2.role)
+  }
+
+  if (member1.class !== member2.role) {
+    return member1.class.localeCompare(member2.class)
+  }
+
+  return member1.name.localeCompare(member2.name)
+}
+
+export function SampleRoutes({ hidden }: Props) {
+  const dispatch = useAppDispatch()
+  const { t } = useI18n()
+  const dungeon = useDungeon()
+  const route = useActualRoute()
+  const compareRoute = useActualCompareRoute()
+  const [selectedMode, setSelectedMode] = useState<FilterMode | null>(null)
+  const [selectedSpec, setSelectedSpec] = useState<Spec>(tankSpecs[0]!)
+  const { sampleRoutes: routes, loading } = useSampleRoutes(dungeon.key)
+
+  const routesByMode = useMemo(() => {
+    const rankings = routes.filter((route) => route.wclRanking).map((route) => route.wclRanking!)
+
+    function pickRankingsFromFilterMode(mode: FilterMode) {
+      if (mode === 'spec') {
+        return pickSpecRankings(rankings, selectedSpec, 10)
+      } else if (mode === 'top') {
+        return pickTopRankings(rankings, 10)
+      } else if (mode === 'varied') {
+        return pickVariedComps(rankings, 10)
+      }
+
+      return []
+    }
+
+    return Object.fromEntries(
+      filterModes.map((mode) => {
+        const pickedRankings = pickRankingsFromFilterMode(mode)
+
+        return [
+          mode,
+          routes.filter(
+            (route) =>
+              (mode === 'easy' && !route.wclRanking) ||
+              (route.wclRanking && pickedRankings.includes(route.wclRanking)),
+          ),
+        ]
+      }),
+    ) as Record<FilterMode, SampleRoute[]>
+  }, [routes, selectedSpec])
+
+  const mode =
+    selectedMode ?? filterModes.find((mode) => routesByMode[mode].length) ?? filterModes[0]
+
+  const options: SampleRouteOption[] = useMemo(() => {
+    return routesByMode[mode].map<SampleRouteOption>(({ route, wclRanking }) => ({
+      id: route.uid,
+      route,
+      wclRanking,
+      content: (
+        <div className="flex flex-col gap-0.5 overflow-hidden">
+          <div className="flex justify-between">
+            <div className="flex items-center gap-1">
+              {wclRanking && 'rank' in wclRanking && (
+                <div className="rounded-sm px-1 bg-cyan-800 text-xs">
+                  {t('route.rank', { rank: wclRanking.rank ?? '-' })}
+                </div>
+              )}
+              {route.name}
+            </div>
+            {wclRanking && (
+              <div
+                className="justify-self-end"
+                onClick={() => {
+                  window.open(
+                    `https://www.warcraftlogs.com/reports/${wclRanking.report.code}?fight=${wclRanking.report.fightID}`,
+                    '_blank',
+                    'noopener',
+                  )
+                }}
+              >
+                <div className="rounded-sm bg-cyan-800 p-0.5">
+                  <ArrowTopRightOnSquareIcon height={16} width={16} />
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex gap-1 flex-wrap">
+            {wclRanking &&
+              wclRanking.team.toSorted(sortTeam).map((member, idx) => (
+                <div
+                  key={member.id}
+                  className="text-xs whitespace-nowrap"
+                  style={{ color: classColors[member.class] }}
+                >
+                  {member.name}
+                  {idx === wclRanking.team.length}
+                </div>
+              ))}
+          </div>
+        </div>
+      ),
+    }))
+  }, [routesByMode, mode, t])
+
+  const onSelect = useCallback(
+    (option: SampleRouteOption) => {
+      dispatch(setPreviewRouteAsync(null))
+      dispatch(setRouteFromSample(option))
+      dispatch(addToast({ message: t('route.importedCopy', { name: option.route.name }) }))
+    },
+    [dispatch, t],
+  )
+
+  const onHover = useCallback(
+    (option: SampleRouteOption | null) => {
+      dispatch(setPreviewRouteAsync(option ? { routeId: option.id, route: option.route } : null))
+    },
+    [dispatch],
+  )
+
+  const getRoute = useCallback((option: SampleRouteOption) => option.route, [])
+
+  const optionAction = useCompareOptionAction<SampleRouteOption>({
+    tooltipId: 'sample-routes-compare-tooltip',
+    routeUid: route.uid,
+    compareRouteUid: compareRoute?.uid,
+    getRoute,
+  })
+
+  const handleModeChange = useCallback((mode: FilterMode) => {
+    setSelectedMode(mode)
+    setSelectedSpec((prev) => prev ?? tankSpecs[0]!)
+  }, [])
+
+  const onOpen = useCallback(() => {
+    trackEvent('sample_routes_open', { dungeon: dungeon.key })
+  }, [dungeon.key])
+
+  const filterHeader = (
+    <div className="flex flex-col gap-1">
+      {loading && (
+        <div className="flex items-center gap-1.5 text-sm text-gray-300">
+          <ArrowPathIcon width={16} height={16} className="animate-spin" />
+          {t('route.loadingRanked')}
+        </div>
+      )}
+      <div className="flex items-center gap-1 justify-between">
+        {filterModes.map((m) => (
+          <button
+            key={m}
+            onClick={() => handleModeChange(m)}
+            className={`text-sm px-1 py-0.5 rounded transition-colors ${
+              mode === m
+                ? 'bg-white/25 text-white'
+                : 'text-gray-300 hover:bg-white/15 hover:text-white'
+            }`}
+          >
+            {m === 'varied'
+              ? t('route.filter.varied')
+              : m === 'easy'
+                ? t('route.filter.easy')
+                : m === 'top'
+                  ? t('route.filter.top')
+                  : t('route.filter.tank')}
+          </button>
+        ))}
+      </div>
+      {mode === 'spec' && (
+        <div className="flex items-center gap-1 justify-between">
+          {tankSpecs.map((spec) => (
+            <button
+              key={`${spec.class}-${spec.spec}`}
+              onClick={() => setSelectedSpec(spec)}
+              className={`rounded overflow-hidden border ${selectedSpec?.class === spec.class && selectedSpec?.spec === spec.spec ? 'border-white' : 'border-transparent'}`}
+            >
+              <img
+                src={`https://wow.zamimg.com/images/wow/icons/large/${spec.icon}.jpg`}
+                width={22}
+                height={22}
+                alt={`${spec.spec} ${spec.class}`}
+              />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <Dropdown
+      short
+      options={options}
+      onOpen={onOpen}
+      onSelect={onSelect}
+      onHover={onHover}
+      optionAction={optionAction}
+      header={filterHeader}
+      buttonContent={t('route.sampleRoutes')}
+      MainButtonIcon={MagnifyingGlassIcon}
+      className={`${hidden ? '[&]:hidden' : ''}`}
+    />
+  )
+}

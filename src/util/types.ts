@@ -1,0 +1,127 @@
+﻿import type { Point, SpawnId } from '../data/types.ts'
+import type { ForwardRefExoticComponent, PropsWithoutRef, SVGProps } from 'react'
+import type { DungeonKey } from '../data/dungeonKeys.ts'
+import type { WclRanking } from './wclRankings.ts'
+import type { WowMark } from './marks.ts'
+import type { WclUrlInfo } from './wclCalc.ts'
+
+export type Pull = {
+  id: number
+  spawns: SpawnId[]
+  spawnsBackup?: SpawnId[]
+}
+
+export type SavedRoute = {
+  name: string
+  uid: string
+  dungeonKey: DungeonKey
+  cloudSyncedAt?: string
+}
+
+export type Note = {
+  text: string
+  position: Point
+  justAdded?: boolean
+}
+
+export type Drawing = {
+  id: number
+  weight: number
+  color: string
+  positions: Point[][]
+  arrowRotation?: number
+}
+
+export type Assignments = {
+  [spawnId: SpawnId]: WowMark
+}
+
+/** Mobs a WCL run held out of a pull with long CC, mapped to the spell id used. */
+export type CcSpawns = {
+  [spawnId: SpawnId]: number
+}
+
+export type Route = {
+  name: string
+  uid: string
+  dungeonKey: DungeonKey
+  pulls: Pull[]
+  notes: Note[]
+  drawings: Drawing[]
+  assignments: Assignments
+  ccSpawns?: CcSpawns
+  wclUrlInfo?: WclUrlInfo
+}
+
+export type PullDetailed = Pull & {
+  index: number
+  count: number
+  health: number
+  countCumulative: number
+  healthCumulative: number
+  /** Interrupters this pull demands. See util/interrupts.ts. */
+  kicksNeeded: number
+}
+
+export type MdtPull = {
+  color: string
+  [enemyIndex: number]: number[]
+}
+
+export type MdtNote = {
+  // [0: x, 1: y, 2: floor, 3: true, 4: text]
+  d: [number, number, number, true, string]
+  n: true
+}
+
+export type MdtPolygon = {
+  // [0: weight, 1: 1, 2: floor, 3: true, 4: color, 5: -8]
+  d: [number, 1, number, true, string, -8, true]
+
+  // [prevX, prevY, x, y]
+  l: string[]
+}
+
+export type MdtArrow = {
+  // [0: weight, 1: 1, 2: floor, 3: true, 4: color, 5: -8, 6: true]
+  d: [number, 1, number, true, string, -8]
+
+  // [prevX, prevY, x, y]
+  l: string[]
+
+  // rotation in radians, left is 0
+  t: [number]
+}
+
+export type MdtObject = MdtNote | MdtPolygon | MdtArrow
+
+export type MdtAssignment = {
+  [spawnIndex: number]: number
+}
+
+export type MdtAssignments = {
+  [enemyIndex: number]: MdtAssignment | number[]
+}
+
+export type MdtRoute = {
+  text: string
+  week: number
+  difficulty: number
+  uid: string
+  value: {
+    currentPull: number
+    currentSublevel: number
+    currentDungeonIdx: number
+    selection: number[]
+    pulls: MdtPull[]
+    enemyAssignments?: MdtAssignments
+  }
+  objects: MdtObject[] | Record<number, MdtObject>
+}
+
+export type SampleRoute = {
+  route: Route
+  wclRanking?: WclRanking
+}
+
+export type IconComponent = ForwardRefExoticComponent<PropsWithoutRef<SVGProps<SVGSVGElement>>>
