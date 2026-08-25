@@ -1,5 +1,7 @@
 import type { PayloadAction } from '@reduxjs/toolkit'
 import type { Mob } from '../../data/types.ts'
+import type { Locale } from '../../i18n/i18n.tsx'
+import { localizedMobName } from '../../i18n/mdtLocale.ts'
 import { createAppSlice } from '../storeUtil.ts'
 
 export interface MobSearchState {
@@ -36,8 +38,10 @@ export const mobSearchSlice = createAppSlice({
 })
 
 /** `term` must already be normalized via selectMobSearchTermNormalized */
-export const mobMatchesSearch = (mob: Mob, term: string) =>
-  !!term && mob.name.toLowerCase().includes(term)
+export const mobMatchesSearch = (mob: Mob, term: string, locale: Locale = 'en-US') =>
+  !!term &&
+  (mob.name.toLowerCase().includes(term) ||
+    localizedMobName(mob, locale).toLowerCase().includes(term))
 
 export const mobSearchReducer = mobSearchSlice.reducer
 

@@ -1,16 +1,22 @@
 import { TooltipStyled } from '../Common/TooltipStyled.tsx'
 import { type DungeonKey } from '../../data/dungeonKeys.ts'
 import type { Mob, Spell, SpellAttribute } from '../../data/types.ts'
-import { BoltIcon, SparklesIcon } from '@heroicons/react/24/outline'
+import { BoltIcon, InformationCircleIcon, SparklesIcon } from '@heroicons/react/24/outline'
 import { SootheIcon } from '../Common/Icons/SootheIcon.tsx'
 import { DiseaseIcon } from '../Common/Icons/DiseaseIcon.tsx'
 import { BleedIcon } from '../Common/Icons/BleedIcon.tsx'
 import { CurseIcon } from '../Common/Icons/CurseIcon.tsx'
 import { PoisonIcon } from '../Common/Icons/PoisonIcon.tsx'
-import type { FC, SVGProps } from 'react'
+import { useState, type FC, type SVGProps } from 'react'
 import { dungeonSpells, getIconLink } from '../../data/spells/spells.ts'
 import { MELEE_LOCKOUT } from '../../util/interrupts.ts'
 import { roundTo } from '../../util/numbers.ts'
+import { useI18n } from '../../i18n/useI18n.ts'
+import {
+  localizeMdtText,
+  localizedSpellDescription,
+  localizedSpellName,
+} from '../../i18n/mdtLocale.ts'
 
 interface Props {
   spell: Spell
@@ -37,7 +43,11 @@ const attributeIcons: AttributeIcon[] = [
 ]
 
 export function MobSpellInfo({ spell, mob, dungeonKey }: Props) {
-  const { icon, aoe, damage, physical, name, id } = spell
+  const [effectOpen, setEffectOpen] = useState(false)
+  const { locale, t } = useI18n()
+  const { icon, aoe, damage, physical, id } = spell
+  const localizedName = localizedSpellName(spell, locale)
+  const localizedDescription = localizedSpellDescription(spell.id, locale)
   const spellDetailsTooltipId = `spell-details-${id}`
   const kickTooltipId = `spell-kick-${id}`
 
@@ -53,93 +63,114 @@ export function MobSpellInfo({ spell, mob, dungeonKey }: Props) {
   // wait, so a value at the lockout means the spell itself has no meaningful cooldown.
   const castSeconds = (spell.castTime ?? 0) / 1000
   const waitSeconds = spell.cooldown ? roundTo(spell.cooldown - castSeconds, 1) : 0
-  const waitLabel = waitSeconds <= MELEE_LOCKOUT ? 'kick lockout' : 'spell cd'
+  const waitLabel = waitSeconds <= MELEE_LOCKOUT ? t('spell.kickLockout') : t('spell.cooldown')
 
   return (
-    <div className="h-8 flex items-center border border-gray-500 rounded-md">
-      <a
-        href={`https://www.wowhead.com/spell=${id}?dd=23&ddsize=5`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        <img
-          src={getIconLink(icon)}
-          width={30}
-          height={30}
-          alt={name}
-          className="rounded-md rounded-r-none"
-        />
-      </a>
+    <div className="flex flex-col border border-gray-500 rounded-md overflow-hidden">
+      <div className="h-8 flex items-center">
+        <button
+          type="button"
+          disabled={!localizedDescription}
+          aria-label={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
+          title={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
+          onClick={() => setEffectOpen((open) => !open)}
+        >
+          <img
+            src={getIconLink(icon)}
+            width={30}
+            height={30}
+            alt={localizedName}
+            className="rounded-md rounded-r-none"
+          />
+        </button>
 
-      <div
-        className={`gritty flex flex-grow justify-between items-center gap-6 pl-2 h-full opacity-90 text-nowrap rounded-md rounded-l-none
+        <div
+          className={`gritty flex flex-grow justify-between items-center gap-6 pl-2 h-full opacity-90 text-nowrap rounded-md rounded-l-none
                  ${isAlternateCast ? 'bg-fancy-orange' : 'bg-fancy-red'}`}
-      >
-        <div>
-          <span>
-            <a
-              href={`https://www.wowhead.com/spell=${id}?dd=23&ddsize=5`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {name}
-            </a>
-          </span>
-          <span className="text-xs">
-            {' '}
-            {spell.id} {isAlternateCast && ` (cast)`}
-          </span>
-        </div>
-        <div className={`flex items-center gap-1 ${damage ? '' : 'pr-1'}`}>
-          {attributeIcons.map(
-            ({ name, Icon, label }) =>
-              spell.attributes?.includes(name) && (
-                <Icon
-                  key={name}
-                  height={20}
-                  data-tooltip-id={spellDetailsTooltipId}
-                  data-tooltip-content={label ?? name[0]?.toUpperCase() + name.substring(1)}
+        >
+          <button
+            type="button"
+            className="text-left"
+            disabled={!localizedDescription}
+            aria-label={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
+            title={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
+            onClick={() => setEffectOpen((open) => !open)}
+          >
+            <span>{localizedName}</span>
+            <span className="text-xs">
+              {' '}
+              {spell.id} {isAlternateCast && ` (${t('spell.castVariant')})`}
+            </span>
+          </button>
+          <div className={`flex items-center gap-1 ${damage ? '' : 'pr-1'}`}>
+            {localizedDescription && (
+              <button
+                type="button"
+                className="flex items-center"
+                aria-label={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
+                title={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
+                onClick={() => setEffectOpen((open) => !open)}
+              >
+                <InformationCircleIcon height={20} />
+              </button>
+            )}
+            {attributeIcons.map(
+              ({ name, Icon, label }) =>
+                spell.attributes?.includes(name) && (
+                  <Icon
+                    key={name}
+                    height={20}
+                    data-tooltip-id={spellDetailsTooltipId}
+                    data-tooltip-content={
+                      label ?? localizeMdtText(name[0]?.toUpperCase() + name.substring(1), locale)
+                    }
+                  />
+                ),
+            )}
+            {!!spell.cooldown && (
+              <>
+                <span className="text-xs" data-tooltip-id={kickTooltipId}>
+                  {spell.cooldown}s
+                </span>
+                <TooltipStyled id={kickTooltipId} place="top">
+                  <div>{t('spell.secondsUntilKick')}</div>
+                  <div>
+                    {waitSeconds}s {waitLabel}
+                    {castSeconds > 0 && ` + ${castSeconds}s ${t('spell.castTime')}`}
+                  </div>
+                </TooltipStyled>
+              </>
+            )}
+            <TooltipStyled id={spellDetailsTooltipId} place="top" />
+            {damageText && (
+              <a
+                className="flex h-full"
+                href={`https://not-even-close.com/spell/${id}?trash=${!mob.isBoss}`}
+                target="_blank"
+                rel="noreferrer"
+                data-tooltip-id={`spell-${id}-nec`}
+              >
+                <img
+                  src={getIconLink('ability_argus_soulburst')}
+                  width={30}
+                  height={30}
+                  alt="stealth detect"
+                  className="rounded-md rounded-l-none"
                 />
-              ),
-          )}
-          {!!spell.cooldown && (
-            <>
-              <span className="text-xs" data-tooltip-id={kickTooltipId}>
-                {spell.cooldown}s
-              </span>
-              <TooltipStyled id={kickTooltipId} place="top">
-                <div>Seconds until this needs kicking again</div>
-                <div>
-                  {waitSeconds}s {waitLabel}
-                  {castSeconds > 0 && ` + ${castSeconds}s cast`}
-                </div>
-              </TooltipStyled>
-            </>
-          )}
-          <TooltipStyled id={spellDetailsTooltipId} place="top" />
-          {damageText && (
-            <a
-              className="flex h-full"
-              href={`https://not-even-close.com/spell/${id}?trash=${!mob.isBoss}`}
-              target="_blank"
-              rel="noreferrer"
-              data-tooltip-id={`spell-${id}-nec`}
-            >
-              <img
-                src={getIconLink('ability_argus_soulburst')}
-                width={30}
-                height={30}
-                alt="stealth detect"
-                className="rounded-md rounded-l-none"
-              />
-            </a>
-          )}
-          <TooltipStyled id={`spell-${id}-nec`} place="top">
-            <div>{damageText}</div>
-            <div>Click to view in Not Even Close</div>
-          </TooltipStyled>
+              </a>
+            )}
+            <TooltipStyled id={`spell-${id}-nec`} place="top">
+              <div>{damageText}</div>
+              <div>{t('spell.viewDetails')}</div>
+            </TooltipStyled>
+          </div>
         </div>
       </div>
+      {effectOpen && localizedDescription && (
+        <div className="bg-slate-950/80 px-2 py-1.5 text-sm leading-5 whitespace-pre-line">
+          {localizedDescription}
+        </div>
+      )}
     </div>
   )
 }

@@ -103,9 +103,10 @@
           "idx": 1,
           "group": 1,
           "pos": [
-            -167.51,
-            57.48
-          ]
+            -171.33,
+            59.91
+          ],
+          "scale": 1.6
         },
         {
           "id": "2-2",
@@ -162,8 +163,8 @@
           "idx": 8,
           "group": 33,
           "pos": [
-            -60.92,
-            87.14
+            -60.7,
+            91.81
           ],
           "scale": 1.6
         },
@@ -221,9 +222,30 @@
           "idx": 1,
           "group": 1,
           "pos": [
-            -165.08,
-            60.59
-          ]
+            -167.29,
+            63.82
+          ],
+          "scale": 1.6
+        },
+        {
+          "id": "3-2",
+          "idx": 2,
+          "group": 3,
+          "pos": [
+            -138.7,
+            36.8
+          ],
+          "scale": 1.6
+        },
+        {
+          "id": "3-3",
+          "idx": 3,
+          "group": 3,
+          "pos": [
+            -134.33,
+            32.73
+          ],
+          "scale": 1.6
         },
         {
           "id": "3-4",
@@ -256,6 +278,16 @@
           "scale": 1.6
         },
         {
+          "id": "3-7",
+          "idx": 7,
+          "group": 12,
+          "pos": [
+            -68.93,
+            53.69
+          ],
+          "scale": 1.6
+        },
+        {
           "id": "3-8",
           "idx": 8,
           "group": 32,
@@ -270,8 +302,8 @@
           "idx": 9,
           "group": 34,
           "pos": [
-            -55.93,
-            71.35
+            -55.88,
+            73
           ],
           "scale": 1.6
         }
@@ -379,18 +411,18 @@
           "idx": 8,
           "group": 12,
           "pos": [
-            -69.29,
-            54.14
+            -71.1,
+            58.64
           ],
           "scale": 1.6
         },
         {
           "id": "4-9",
           "idx": 9,
-          "group": 34,
+          "group": 33,
           "pos": [
-            -59.18,
-            72.77
+            -59.08,
+            85.48
           ],
           "scale": 1.6,
           "patrol": []
@@ -402,7 +434,7 @@
       "enemyIndex": 5,
       "name": "Infused Whelp",
       "count": 0,
-      "health": 1297302,
+      "health": 3243255,
       "creatureType": "Dragonkin",
       "scale": 1,
       "isBoss": false,
@@ -963,7 +995,7 @@
       "health": 9729765,
       "creatureType": "Dragonkin",
       "scale": 1,
-      "isBoss": true,
+      "isBoss": false,
       "characteristics": [
         "Taunt",
         "Mind Soothe"
@@ -1005,7 +1037,7 @@
       "enemyIndex": 7,
       "name": "Melidrussa Chillworn",
       "count": 0,
-      "health": 19459530,
+      "health": 20270342,
       "creatureType": "Humanoid",
       "scale": 1,
       "isBoss": true,
@@ -1125,7 +1157,7 @@
       "health": 8432463,
       "creatureType": "Dragonkin",
       "scale": 1,
-      "isBoss": true,
+      "isBoss": false,
       "characteristics": [
         "Taunt",
         "Mind Soothe"
@@ -1624,7 +1656,7 @@
       "health": 9729765,
       "creatureType": "Dragonkin",
       "scale": 1,
-      "isBoss": true,
+      "isBoss": false,
       "characteristics": [
         "Taunt",
         "Mind Soothe"
@@ -1670,7 +1702,7 @@
       "enemyIndex": 15,
       "name": "Kokia Blazehoof",
       "count": 0,
-      "health": 20756831,
+      "health": 21621698,
       "creatureType": "Humanoid",
       "scale": 1,
       "isBoss": true,
@@ -2184,7 +2216,7 @@
       "health": 6486510,
       "creatureType": "Humanoid",
       "scale": 1,
-      "isBoss": true,
+      "isBoss": false,
       "characteristics": [
         "Taunt",
         "Mind Soothe"
@@ -2233,7 +2265,7 @@
       "enemyIndex": 20,
       "name": "Erkhart Stormvein",
       "count": 0,
-      "health": 14594648,
+      "health": 15202757,
       "creatureType": "Humanoid",
       "scale": 1,
       "isBoss": true,
@@ -2295,7 +2327,7 @@
       "enemyIndex": 21,
       "name": "Kyrakka",
       "count": 0,
-      "health": 12973020,
+      "health": 13513562,
       "creatureType": "Dragonkin",
       "scale": 1,
       "isBoss": true,
@@ -2359,7 +2391,7 @@
       "enemyIndex": 22,
       "name": "Blazebound Firestorm",
       "count": 0,
-      "health": 2594604,
+      "health": 2162170,
       "creatureType": "Elemental",
       "scale": 1.8,
       "isBoss": false,
@@ -2415,7 +2447,7 @@
       "enemyIndex": 23,
       "name": "Infused Whelp",
       "count": 0,
-      "health": 972977,
+      "health": 810814,
       "creatureType": "Dragonkin",
       "scale": 1,
       "isBoss": false,
@@ -2469,13 +2501,5 @@
       ]
     }
   ],
-  "pois": [
-    {
-      "type": "dungeonEntrance",
-      "pos": [
-        -235.47,
-        54.87
-      ]
-    }
-  ]
+  "pois": []
 }

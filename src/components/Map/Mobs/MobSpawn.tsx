@@ -34,6 +34,7 @@ import {
   mobMatchesSearch,
   selectMobSearchTermNormalized,
 } from '../../../store/reducers/mobSearchReducer.ts'
+import { useI18n } from '../../../i18n/useI18n.ts'
 
 interface MobSpawnProps {
   mobSpawn: MobSpawn
@@ -219,6 +220,7 @@ export function MobSpawnWrapper({
   isKKeyDown,
   spawnDiff,
 }: MobSpawnProps) {
+  const { locale } = useI18n()
   const route = useRoute()
 
   // Delay each individual mob by up to 100ms for performance and because it looks cool
@@ -253,7 +255,7 @@ export function MobSpawnWrapper({
   const ccSpellId = route.ccSpawns?.[mobSpawn.spawn.id] ?? null
 
   const searchTerm = useRootSelector(selectMobSearchTermNormalized)
-  const isSearchMatch = mobMatchesSearch(mobSpawn.mob, searchTerm)
+  const isSearchMatch = mobMatchesSearch(mobSpawn.mob, searchTerm, locale)
   const isSearchDimmed = !!searchTerm && !isSearchMatch
 
   return (

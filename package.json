@@ -20,6 +20,7 @@
     "vercel-dev": "cross-env NODE_ENV=vercel_dev && vercel dev --listen 6173",
     "postinstall": "patch-package",
     "dungeons": "tsx scripts/mdtDungeons.ts",
+    "locales:spells": "tsx scripts/syncSpellLocales.ts",
     "offsets": "tsx scripts/checkMapOffsets.ts",
     "spells": "tsx scripts/guessDungeonSpells.ts",
     "cooldowns": "tsx scripts/guessSpellCooldowns.ts",

@@ -11,6 +11,7 @@ import type { DungeonKey } from '../src/data/dungeonKeys.ts'
 const dirname = getDirname(import.meta.url)
 const mdtSourceDir = path.resolve(process.env.MDT_SOURCE_DIR ?? `${dirname}/../MythicDungeonTools`)
 const outputDir = path.resolve(process.env.MDT_OUTPUT_DIR ?? `${dirname}/../src/data/mdtDungeons`)
+const localeOutputDir = path.resolve(`${dirname}/../src/data/mdtLocales`)
 
 export const dungeonPaths = new Map<DungeonKey, string>([
   ['murd', 'Midnight/MurderRow'],
@@ -29,6 +30,7 @@ if (!filterDungeonKey) {
   fs.rmSync(outputDir, { force: true, recursive: true })
 }
 fs.mkdirSync(outputDir, { recursive: true })
+importMdtLocale('zhCN')
 
 for (const [key, path] of dungeonPaths) {
   if (!filterDungeonKey || key === filterDungeonKey) {
@@ -58,6 +60,45 @@ function getFieldValue(fields: TableKey[], key: string) {
   if (!field) return null
 
   return parseExpression(field.value)
+}
+
+function parseLocaleString(literal: StringLiteral) {
+  if (!literal.raw.startsWith('"')) {
+    throw new Error(`Unsupported MDT locale string: ${literal.raw}`)
+  }
+
+  return JSON.parse(literal.raw) as string
+}
+
+function importMdtLocale(locale: string) {
+  const data = fs.readFileSync(path.join(mdtSourceDir, `Locales/${locale}.lua`), 'utf8')
+  const body = parser.parse(data).body
+  const translations: Record<string, string> = {}
+
+  for (const statement of body) {
+    if (statement.type !== 'AssignmentStatement') continue
+
+    statement.variables.forEach((variable, index) => {
+      const value = statement.init[index]
+      if (
+        variable.type !== 'IndexExpression' ||
+        variable.base.type !== 'Identifier' ||
+        variable.base.name !== 'L' ||
+        variable.index.type !== 'StringLiteral' ||
+        value?.type !== 'StringLiteral'
+      ) {
+        return
+      }
+
+      translations[parseLocaleString(variable.index)] = parseLocaleString(value)
+    })
+  }
+
+  fs.mkdirSync(localeOutputDir, { recursive: true })
+  fs.writeFileSync(
+    path.join(localeOutputDir, `${locale}.json`),
+    JSON.stringify(translations, null, 2),
+  )
 }
 
 function convertCoords(x: number, y: number): Point {

@@ -3,12 +3,15 @@ import type { PullDetailed } from '../../../util/types.ts'
 import { useDungeon } from '../../../store/routes/routeHooks.ts'
 import { useMemo } from 'react'
 import { countMobs, mobEfficiency } from '../../../util/mobSpawns.ts'
+import { useI18n } from '../../../i18n/useI18n.ts'
+import { localizedMobName } from '../../../i18n/mdtLocale.ts'
 
 interface Props {
   pull: PullDetailed
 }
 
 export function PullTooltip({ pull }: Props) {
+  const { locale, t } = useI18n()
   const dungeon = useDungeon()
 
   const sortedCounts = useMemo(() => countMobs(pull.spawns, dungeon), [pull, dungeon])
@@ -26,33 +29,35 @@ export function PullTooltip({ pull }: Props) {
   return (
     <>
       <div>
-        Forces: {pull.count} ({mobCountPercentStr(pull.count, dungeon.mdt.totalCount)})
+        {t('mob.forces')}: {pull.count} ({mobCountPercentStr(pull.count, dungeon.mdt.totalCount)})
       </div>
       <div>
-        Total: {pull.countCumulative} (
+        {t('mob.total')}: {pull.countCumulative} (
         {mobCountPercentStr(pull.countCumulative, dungeon.mdt.totalCount)})
       </div>
       {pull.count > 0 && (
         <div>
-          Pull efficiency: <span style={{ color: efficiencyColor }}>{efficiencyScore}</span>
+          {t('mob.pullEfficiency')}:{' '}
+          <span style={{ color: efficiencyColor }}>{efficiencyScore}</span>
         </div>
       )}
       {totalEffiency > 0 && (
         <div>
-          Total efficiency: <span style={{ color: totalEffiencyColor }}>{totalEffiency}</span>
+          {t('mob.totalEfficiency')}:{' '}
+          <span style={{ color: totalEffiencyColor }}>{totalEffiency}</span>
         </div>
       )}
       <div>
         {sortedCounts.map(({ mob, count }) => (
           <div key={mob.id}>
-            {count}x {mob.name}
+            {count}x {localizedMobName(mob, locale)}
           </div>
         ))}
       </div>
       {pull.kicksNeeded > 0 && (
         <div className="mt-1">
-          <div>Kicks needed: {pull.kicksNeeded}</div>
-          <div className="max-w-56 text-xs opacity-70">Assumes 15s kick cd, 5s lockout</div>
+          <div>{t('mob.kicksNeeded', { count: pull.kicksNeeded })}</div>
+          <div className="max-w-56 text-xs opacity-70">{t('mob.kickAssumption')}</div>
         </div>
       )}
     </>

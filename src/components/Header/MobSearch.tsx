@@ -20,7 +20,7 @@ import { useI18n } from '../../i18n/useI18n.ts'
 
 export function MobSearch() {
   const dispatch = useAppDispatch()
-  const { t } = useI18n()
+  const { locale, t } = useI18n()
   const dungeon = useDungeon()
   const open = useRootSelector(selectMobSearchOpen)
   const term = useRootSelector(selectMobSearchTerm)
@@ -57,14 +57,14 @@ export function MobSearch() {
     const mobIds = new Set<number>()
     let spawnCount = 0
     for (const { mob } of dungeon.mobSpawnsList) {
-      if (!mobMatchesSearch(mob, normalizedTerm)) continue
+      if (!mobMatchesSearch(mob, normalizedTerm, locale)) continue
 
       mobIds.add(mob.id)
       spawnCount += 1
     }
 
     return { mobCount: mobIds.size, spawnCount }
-  }, [dungeon.mobSpawnsList, normalizedTerm])
+  }, [dungeon.mobSpawnsList, locale, normalizedTerm])
 
   const onKeyDown = useCallback(
     (e: KeyboardEvent<HTMLInputElement>) => {

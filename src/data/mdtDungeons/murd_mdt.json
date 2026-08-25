@@ -1,6 +1,6 @@
 {
   "dungeonIndex": 160,
-  "totalCount": 655,
+  "totalCount": 690,
   "enemies": [
     {
       "id": 236085,
@@ -847,7 +847,7 @@
       "enemyIndex": 11,
       "name": "Unleashed Imp",
       "count": 2,
-      "health": 486488,
+      "health": 601841,
       "creatureType": "Demon",
       "scale": 0.7,
       "isBoss": false,
@@ -1538,8 +1538,8 @@
           "idx": 15,
           "group": 39,
           "pos": [
-            -223.69,
-            117.93
+            -229.85,
+            123.1
           ]
         },
         {
@@ -1547,8 +1547,8 @@
           "idx": 16,
           "group": 39,
           "pos": [
-            -226.65,
-            109.05
+            -234.68,
+            111.77
           ]
         }
       ]
@@ -1558,7 +1558,7 @@
       "enemyIndex": 13,
       "name": "Fel Invoker",
       "count": 7,
-      "health": 2918930,
+      "health": 3405418,
       "creatureType": "Humanoid",
       "scale": 1.2,
       "isBoss": false,
@@ -1742,19 +1742,19 @@
         {
           "id": "14-3",
           "idx": 3,
-          "group": 58,
+          "group": 32,
           "pos": [
-            -163.75,
-            105.86
+            -171.64,
+            104.8
           ]
         },
         {
           "id": "14-4",
           "idx": 4,
-          "group": 58,
+          "group": 32,
           "pos": [
-            -163.48,
-            108.92
+            -175.53,
+            108.56
           ]
         },
         {
@@ -1818,6 +1818,24 @@
           "pos": [
             -152.89,
             84.51
+          ]
+        },
+        {
+          "id": "14-12",
+          "idx": 12,
+          "group": 38,
+          "pos": [
+            -222.11,
+            106.85
+          ]
+        },
+        {
+          "id": "14-13",
+          "idx": 13,
+          "group": 38,
+          "pos": [
+            -219.63,
+            118.93
           ]
         }
       ]
@@ -1890,6 +1908,15 @@
           "pos": [
             -165.99,
             58.54
+          ]
+        },
+        {
+          "id": "15-4",
+          "idx": 4,
+          "group": 38,
+          "pos": [
+            -221.11,
+            112.97
           ]
         },
         {
@@ -2067,42 +2094,6 @@
             -209.16,
             114.11
           ]
-        },
-        {
-          "id": "16-18",
-          "idx": 18,
-          "group": 57,
-          "pos": [
-            -159.41,
-            74.97
-          ]
-        },
-        {
-          "id": "16-19",
-          "idx": 19,
-          "group": 57,
-          "pos": [
-            -159.36,
-            78.54
-          ]
-        },
-        {
-          "id": "16-20",
-          "idx": 20,
-          "group": 57,
-          "pos": [
-            -162.93,
-            74.55
-          ]
-        },
-        {
-          "id": "16-21",
-          "idx": 21,
-          "group": 57,
-          "pos": [
-            -162.97,
-            78.03
-          ]
         }
       ]
     },
@@ -2244,8 +2235,8 @@
           "idx": 1,
           "group": 39,
           "pos": [
-            -225.34,
-            113.38
+            -232.54,
+            117.42
           ]
         }
       ]
@@ -2369,7 +2360,7 @@
       "enemyIndex": 20,
       "name": "Xathuux the Annihilator",
       "count": 0,
-      "health": 22702784,
+      "health": 23648733,
       "creatureType": "Demon",
       "scale": 1.5,
       "isBoss": true,
@@ -2433,7 +2424,7 @@
       "enemyIndex": 21,
       "name": "Kystia Manaheart",
       "count": 0,
-      "health": 19459530,
+      "health": 20270342,
       "creatureType": "Humanoid",
       "scale": 1.5,
       "isBoss": true,
@@ -2493,7 +2484,7 @@
       "enemyIndex": 22,
       "name": "Zaen Bladesorrow",
       "count": 0,
-      "health": 22702784,
+      "health": 23648733,
       "creatureType": "Humanoid",
       "scale": 2,
       "isBoss": true,
@@ -2589,7 +2580,7 @@
       "enemyIndex": 23,
       "name": "Nibbles",
       "count": 0,
-      "health": 7783812,
+      "health": 20270342,
       "creatureType": "Beast",
       "scale": 1.5,
       "isBoss": true,
@@ -2643,7 +2634,7 @@
       "enemyIndex": 24,
       "name": "Lithiel Cinderfury",
       "count": 0,
-      "health": 16864926,
+      "health": 17567630,
       "creatureType": "Humanoid",
       "scale": 2,
       "isBoss": true,
@@ -2727,7 +2718,7 @@
       "enemyIndex": 25,
       "name": "Furious Vilefiend",
       "count": 0,
-      "health": 1945953,
+      "health": 1621628,
       "creatureType": "Demon",
       "scale": 1,
       "isBoss": false,
@@ -2759,7 +2750,7 @@
       "enemyIndex": 26,
       "name": "Forbidden Freight",
       "count": 0,
-      "health": 649,
+      "health": 514394,
       "creatureType": "Not specified",
       "scale": 1.5,
       "isBoss": false,
@@ -2905,7 +2896,7 @@
       "enemyIndex": 29,
       "name": "Legion Axe",
       "count": 0,
-      "health": 972977,
+      "health": 1013518,
       "creatureType": "Not specified",
       "scale": 1,
       "isBoss": false,
@@ -3024,7 +3015,7 @@
       "enemyIndex": 33,
       "name": "Wild Imp",
       "count": 0,
-      "health": 259460,
+      "health": 399253,
       "creatureType": "Demon",
       "scale": 1,
       "isBoss": false,
@@ -3062,7 +3053,7 @@
       "enemyIndex": 34,
       "name": "Infernal",
       "count": 0,
-      "health": 2703424,
+      "health": 202703424,
       "creatureType": "Demon",
       "scale": 1,
       "isBoss": false,
@@ -3203,7 +3194,7 @@
       "enemyIndex": 38,
       "name": "Kystia Manaheart",
       "count": 0,
-      "health": 5189210,
+      "health": 5405427,
       "creatureType": "Humanoid",
       "scale": 1.5,
       "isBoss": false,

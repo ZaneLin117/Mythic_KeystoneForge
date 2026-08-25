@@ -5,6 +5,8 @@ import { isMobile } from '../../../util/dev.ts'
 
 import { useDungeon } from '../../../store/routes/routeHooks.ts'
 import { mobEfficiency } from '../../../util/mobSpawns.ts'
+import { useI18n } from '../../../i18n/useI18n.ts'
+import { localizedMobName } from '../../../i18n/mdtLocale.ts'
 
 interface Props {
   mob: Mob
@@ -13,6 +15,7 @@ interface Props {
 }
 
 export function MobSpawnTooltip({ mob, spawn, hidden }: Props) {
+  const { locale, t } = useI18n()
   const dungeon = useDungeon()
 
   if (isMobile) return null
@@ -35,21 +38,22 @@ export function MobSpawnTooltip({ mob, spawn, hidden }: Props) {
       <div className="p-2 rounded-sm">
         <div>
           <span className="font-bold">
-            {mob.name}
+            {localizedMobName(mob, locale)}
             {spawnText}
           </span>
           {groupText}
         </div>
         <div>
-          Forces: {mob.count} | {mobCountPercentStr(mob.count, dungeon.mdt.totalCount)}
+          {t('mob.forces')}: {mob.count} | {mobCountPercentStr(mob.count, dungeon.mdt.totalCount)}
         </div>
         {efficiencyScore > 0 && (
           <div>
-            Efficiency: <span style={{ color: efficiencyColor }}>{efficiencyScore}</span>
+            {t('mob.efficiency')}:{' '}
+            <span style={{ color: efficiencyColor }}>{efficiencyScore}</span>
           </div>
         )}
-        <div style={{ fontSize: 10 }}>[Right click for more]</div>
-        <div style={{ fontSize: 10 }}>[Ctrl-right click to mark]</div>
+        <div style={{ fontSize: 10 }}>[{t('mob.rightClickMore')}]</div>
+        <div style={{ fontSize: 10 }}>[{t('mob.ctrlRightClickMark')}]</div>
       </div>
     </Tooltip>
   )

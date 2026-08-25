@@ -590,7 +590,7 @@
       "enemyIndex": 6,
       "name": "Enthralled Shaman",
       "count": 7,
-      "health": 3567581,
+      "health": 6227050,
       "creatureType": "Humanoid",
       "scale": 1.5,
       "isBoss": false,
@@ -859,7 +859,7 @@
       "enemyIndex": 9,
       "name": "Aegyra the Unyielding",
       "count": 40,
-      "health": 8432463,
+      "health": 10000,
       "creatureType": "Humanoid",
       "scale": 2.5,
       "isBoss": false,
@@ -1407,7 +1407,7 @@
       "enemyIndex": 18,
       "name": "Kilivore Screamer",
       "count": 7,
-      "health": 3081092,
+      "health": 6227050,
       "creatureType": "Beast",
       "scale": 1.5,
       "isBoss": false,
@@ -1648,12 +1648,21 @@
           ]
         },
         {
+          "id": "19-8",
+          "idx": 8,
+          "group": 49,
+          "pos": [
+            -143.13,
+            310.61
+          ]
+        },
+        {
           "id": "19-9",
           "idx": 9,
           "group": 49,
           "pos": [
-            -144.16,
-            314.32
+            -143.26,
+            317.45
           ]
         }
       ]
@@ -1663,7 +1672,7 @@
       "enemyIndex": 20,
       "name": "Blistercreep",
       "count": 1,
-      "health": 648651,
+      "health": 698699,
       "creatureType": "Beast",
       "scale": 0.9,
       "isBoss": false,
@@ -2318,7 +2327,7 @@
         {
           "id": "23-41",
           "idx": 41,
-          "group": 64,
+          "group": null,
           "pos": [
             -168.27,
             349.08
@@ -2327,7 +2336,7 @@
         {
           "id": "23-42",
           "idx": 42,
-          "group": 64,
+          "group": null,
           "pos": [
             -165.13,
             351.5
@@ -2336,7 +2345,7 @@
         {
           "id": "23-43",
           "idx": 43,
-          "group": 64,
+          "group": null,
           "pos": [
             -167.96,
             354.22
@@ -2345,7 +2354,7 @@
         {
           "id": "23-44",
           "idx": 44,
-          "group": 64,
+          "group": null,
           "pos": [
             -171.03,
             349.38
@@ -2354,7 +2363,7 @@
         {
           "id": "23-45",
           "idx": 45,
-          "group": 64,
+          "group": null,
           "pos": [
             -167.84,
             351.59
@@ -2363,7 +2372,7 @@
         {
           "id": "23-46",
           "idx": 46,
-          "group": 64,
+          "group": null,
           "pos": [
             -170.83,
             354.3
@@ -2372,7 +2381,7 @@
         {
           "id": "23-47",
           "idx": 47,
-          "group": 64,
+          "group": null,
           "pos": [
             -173.59,
             351.68
@@ -2381,7 +2390,7 @@
         {
           "id": "23-48",
           "idx": 48,
-          "group": 64,
+          "group": null,
           "pos": [
             -170.77,
             351.72
@@ -2390,7 +2399,7 @@
         {
           "id": "23-49",
           "idx": 49,
-          "group": 64,
+          "group": null,
           "pos": [
             -173.6,
             354.39
@@ -2399,7 +2408,7 @@
         {
           "id": "23-50",
           "idx": 50,
-          "group": 64,
+          "group": null,
           "pos": [
             -165.1,
             354.16
@@ -2502,7 +2511,7 @@
       "enemyIndex": 24,
       "name": "Voidminder",
       "count": 7,
-      "health": 3632446,
+      "health": 6227050,
       "creatureType": "Aberration",
       "scale": 1.5,
       "isBoss": false,
@@ -2581,7 +2590,7 @@
       "enemyIndex": 25,
       "name": "Taz'Rah",
       "count": 0,
-      "health": 20432506,
+      "health": 21283860,
       "creatureType": "Humanoid",
       "scale": 1.7,
       "isBoss": true,
@@ -2629,7 +2638,7 @@
       "enemyIndex": 26,
       "name": "Atroxus",
       "count": 0,
-      "health": 20432506,
+      "health": 21283860,
       "creatureType": "Beast",
       "scale": 2.5,
       "isBoss": true,
@@ -2701,7 +2710,7 @@
       "enemyIndex": 27,
       "name": "Charonus",
       "count": 0,
-      "health": 23351436,
+      "health": 24324411,
       "creatureType": "Aberration",
       "scale": 2.5,
       "isBoss": true,
@@ -2757,7 +2766,7 @@
       "enemyIndex": 28,
       "name": "Toxic Creeper",
       "count": 0,
-      "health": 1135139,
+      "health": 945949,
       "creatureType": "Beast",
       "scale": 1.7,
       "isBoss": false,
@@ -2802,7 +2811,7 @@
       "enemyIndex": 29,
       "name": "Magma Totem",
       "count": 0,
-      "health": 6487,
+      "health": 10000,
       "creatureType": "Not specified",
       "scale": 1,
       "isBoss": false,
@@ -2823,8 +2832,8 @@
           "idx": 1,
           "group": null,
           "pos": [
-            -31.53,
-            187.41
+            -31.97,
+            191.01
           ]
         }
       ]
@@ -2834,7 +2843,7 @@
       "enemyIndex": 30,
       "name": "Ethereal Shade",
       "count": 0,
-      "health": 648651,
+      "health": 817478,
       "creatureType": "Humanoid",
       "scale": 1,
       "isBoss": false,
@@ -2930,13 +2939,5 @@
       ]
     }
   ],
-  "pois": [
-    {
-      "type": "dungeonEntrance",
-      "pos": [
-        -246.96,
-        91.4
-      ]
-    }
-  ]
+  "pois": []
 }

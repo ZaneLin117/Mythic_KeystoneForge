@@ -7,8 +7,15 @@ import { mobCcTypes } from '../../util/mobSpawns.ts'
 import { MobSpellInfo } from './MobSpellInfo.tsx'
 import { dungeonSpells, getIconLink } from '../../data/spells/spells.ts'
 import { shortRoundedNumber } from '../../util/numbers.ts'
+import { useI18n } from '../../i18n/useI18n.ts'
+import {
+  localizeMdtText,
+  localizedMobName,
+  localizedSpellName,
+} from '../../i18n/mdtLocale.ts'
 
 export function MobInfo() {
+  const { locale, t } = useI18n()
   const dispatch = useAppDispatch()
   const selectedSpawn = useRootSelector(selectSelectedSpawn)
   const dungeon = useDungeon()
@@ -18,8 +25,19 @@ export function MobInfo() {
   if (!mobSpawn) return false
 
   const { mob } = mobSpawn
+  const ccTypes = mobCcTypes(mob).map((ccType) => {
+    if (ccType === 'Boss') return t('mob.boss')
+    if (ccType === 'Immune to all CC') return t('mob.immuneAllCc')
+    if (ccType === 'Susceptible to standard CC') return t('mob.susceptibleCc')
+    if (ccType.startsWith('Immune to ')) {
+      return t('mob.immuneTo', { type: localizeMdtText(ccType.slice(10), locale) })
+    }
+    return localizeMdtText(ccType, locale)
+  })
   const spells = dungeonSpells[dungeon.key][mob.id]?.sort((a, b) => {
-    return a.name === b.name ? a.id - b.id : a.name.localeCompare(b.name)
+    const nameA = localizedSpellName(a, locale)
+    const nameB = localizedSpellName(b, locale)
+    return nameA === nameB ? a.id - b.id : nameA.localeCompare(nameB, locale)
   })
 
   return (
@@ -27,7 +45,7 @@ export function MobInfo() {
       <div>
         <div className="flex items-center justify-between gap-2">
           <a href={`https://www.wowhead.com/npc=${mob.id}`} target="_blank" rel="noreferrer">
-            <div className="font-bold text-lg">{mob.name}</div>
+            <div className="font-bold text-lg">{localizedMobName(mob, locale)}</div>
           </a>
           <XMarkIcon
             width={20}
@@ -37,11 +55,13 @@ export function MobInfo() {
           />
         </div>
         <div className="flex justify-between gap-2">
-          <div>{mob.creatureType}</div>
+          <div>{localizeMdtText(mob.creatureType, locale)}</div>
           <div>ID: {mob.id}</div>
         </div>
-        <div>Base HP: {shortRoundedNumber(mob.health)}</div>
-        {mobCcTypes(mob).map((ccType) => (
+        <div>
+          {t('mob.baseHp')}: {shortRoundedNumber(mob.health)}
+        </div>
+        {ccTypes.map((ccType) => (
           <div key={ccType}>{ccType}</div>
         ))}
         {mob.stealthDetect && (
@@ -53,7 +73,7 @@ export function MobInfo() {
               alt="stealth detect"
               className="rounded-md rounded-r-none"
             />
-            Detects stealth
+            {t('mob.detectsStealth')}
           </div>
         )}
       </div>

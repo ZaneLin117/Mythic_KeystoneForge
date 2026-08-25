@@ -9,6 +9,8 @@ import type { PullDetailed } from '../../util/types.ts'
 import { useDungeon, useRoute } from '../../store/routes/routeHooks.ts'
 import { setMapMode } from '../../store/reducers/mapReducer.ts'
 import { TotalCount } from '../Sidebar/Pulls/TotalCount.tsx'
+import { useI18n } from '../../i18n/useI18n.ts'
+import { localizedMobName } from '../../i18n/mdtLocale.ts'
 
 interface Props {
   pull: PullDetailed
@@ -21,6 +23,7 @@ const livePanelRightOffset = 32
 export const livePanelRight = livePanelWidth + livePanelRightOffset
 
 export function LivePanel({ pull, prevPull, pullsDetailed }: Props) {
+  const { locale } = useI18n()
   const dispatch = useAppDispatch()
   const dungeon = useDungeon()
   const route = useRoute()
@@ -47,9 +50,9 @@ export function LivePanel({ pull, prevPull, pullsDetailed }: Props) {
               <img
                 className="rounded-full w-6"
                 src={`/npc_portraits/${mob.id}.png`}
-                alt={mob.name}
+                alt={localizedMobName(mob, locale)}
               />
-              {count}x {mob.name}
+              {count}x {localizedMobName(mob, locale)}
             </div>
           ))}
         </div>
