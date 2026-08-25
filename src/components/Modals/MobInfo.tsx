@@ -13,6 +13,8 @@ import {
   localizedMobName,
   localizedSpellName,
 } from '../../i18n/mdtLocale.ts'
+import { getBossGuide } from '../../data/bossGuides.ts'
+import { BossGuide } from './BossGuide.tsx'
 
 export function MobInfo() {
   const { locale, t } = useI18n()
@@ -25,6 +27,7 @@ export function MobInfo() {
   if (!mobSpawn) return false
 
   const { mob } = mobSpawn
+  const bossGuide = getBossGuide(dungeon.key, mob.id)
   const ccTypes = mobCcTypes(mob).map((ccType) => {
     if (ccType === 'Boss') return t('mob.boss')
     if (ccType === 'Immune to all CC') return t('mob.immuneAllCc')
@@ -41,7 +44,10 @@ export function MobInfo() {
   })
 
   return (
-    <Panel blue>
+    <Panel
+      blue
+      className="max-h-[calc(100vh-4rem)] w-[min(26rem,calc(100vw-1rem))] overflow-y-auto"
+    >
       <div>
         <div className="flex items-center justify-between gap-2">
           <a href={`https://www.wowhead.com/npc=${mob.id}`} target="_blank" rel="noreferrer">
@@ -77,6 +83,7 @@ export function MobInfo() {
           </div>
         )}
       </div>
+      {bossGuide && <BossGuide guide={bossGuide} label={t('mob.bossGuide')} />}
       {!!spells?.length && (
         <div className="flex flex-col gap-2">
           {spells.map((spell) => (
