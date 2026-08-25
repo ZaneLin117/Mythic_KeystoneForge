@@ -7,7 +7,7 @@ import { DiseaseIcon } from '../Common/Icons/DiseaseIcon.tsx'
 import { BleedIcon } from '../Common/Icons/BleedIcon.tsx'
 import { CurseIcon } from '../Common/Icons/CurseIcon.tsx'
 import { PoisonIcon } from '../Common/Icons/PoisonIcon.tsx'
-import { useState, type FC, type SVGProps } from 'react'
+import { type FC, type SVGProps } from 'react'
 import { dungeonSpells, getIconLink } from '../../data/spells/spells.ts'
 import { MELEE_LOCKOUT } from '../../util/interrupts.ts'
 import { roundTo } from '../../util/numbers.ts'
@@ -43,11 +43,11 @@ const attributeIcons: AttributeIcon[] = [
 ]
 
 export function MobSpellInfo({ spell, mob, dungeonKey }: Props) {
-  const [effectOpen, setEffectOpen] = useState(false)
   const { locale, t } = useI18n()
   const { icon, aoe, damage, physical, id } = spell
   const localizedName = localizedSpellName(spell, locale)
   const localizedDescription = localizedSpellDescription(spell.id, locale)
+  const effectTooltipId = `spell-effect-${dungeonKey}-${mob.id}-${id}`
   const spellDetailsTooltipId = `spell-details-${id}`
   const kickTooltipId = `spell-kick-${id}`
 
@@ -66,14 +66,18 @@ export function MobSpellInfo({ spell, mob, dungeonKey }: Props) {
   const waitLabel = waitSeconds <= MELEE_LOCKOUT ? t('spell.kickLockout') : t('spell.cooldown')
 
   return (
-    <div className="flex flex-col border border-gray-500 rounded-md overflow-hidden">
+    <div
+      className={`flex flex-col border border-gray-500 rounded-md ${
+        localizedDescription ? 'spell-effect-anchor' : 'overflow-hidden'
+      }`}
+      data-tooltip-id={localizedDescription ? effectTooltipId : undefined}
+    >
       <div className="h-8 flex items-center">
         <button
           type="button"
           disabled={!localizedDescription}
-          aria-label={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
-          title={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
-          onClick={() => setEffectOpen((open) => !open)}
+          aria-label={t('spell.showEffect')}
+          data-tooltip-id={localizedDescription ? effectTooltipId : undefined}
         >
           <img
             src={getIconLink(icon)}
@@ -92,9 +96,8 @@ export function MobSpellInfo({ spell, mob, dungeonKey }: Props) {
             type="button"
             className="text-left"
             disabled={!localizedDescription}
-            aria-label={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
-            title={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
-            onClick={() => setEffectOpen((open) => !open)}
+            aria-label={t('spell.showEffect')}
+            data-tooltip-id={localizedDescription ? effectTooltipId : undefined}
           >
             <span>{localizedName}</span>
             <span className="text-xs">
@@ -107,9 +110,8 @@ export function MobSpellInfo({ spell, mob, dungeonKey }: Props) {
               <button
                 type="button"
                 className="flex items-center"
-                aria-label={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
-                title={effectOpen ? t('spell.hideEffect') : t('spell.showEffect')}
-                onClick={() => setEffectOpen((open) => !open)}
+                aria-label={t('spell.showEffect')}
+                data-tooltip-id={effectTooltipId}
               >
                 <InformationCircleIcon height={20} />
               </button>
@@ -166,10 +168,40 @@ export function MobSpellInfo({ spell, mob, dungeonKey }: Props) {
           </div>
         </div>
       </div>
-      {effectOpen && localizedDescription && (
-        <div className="bg-slate-950/80 px-2 py-1.5 text-sm leading-5 whitespace-pre-line">
-          {localizedDescription}
-        </div>
+      {localizedDescription && (
+        <TooltipStyled
+          id={effectTooltipId}
+          place="right"
+          positionStrategy="fixed"
+          offset={12}
+          delayShow={120}
+          noArrow
+          className="spell-effect-tooltip"
+          enabledOnMobile
+          openEvents={{ mouseenter: true, focus: true, click: true }}
+          closeEvents={{ mouseleave: true, blur: true }}
+          globalCloseEvents={{
+            escape: true,
+            scroll: true,
+            resize: true,
+            clickOutsideAnchor: true,
+          }}
+        >
+          <div className="spell-effect-tooltip-content">
+            <img
+              src={getIconLink(icon)}
+              width={64}
+              height={64}
+              alt=""
+              aria-hidden="true"
+              className="spell-effect-tooltip-icon"
+            />
+            <div className="min-w-0">
+              <div className="spell-effect-tooltip-title">{localizedName}</div>
+              <div className="spell-effect-tooltip-description">{localizedDescription}</div>
+            </div>
+          </div>
+        </TooltipStyled>
       )}
     </div>
   )
