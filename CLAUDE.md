@@ -1,0 +1,117 @@
+# Behavior
+
+Only write comments when they clarify somethnig that isn't obvious from the code.
+Never write comments that will be come outdated when other code changes.
+
+## What this project is
+
+**Threechest** is a Mythic+ dungeon route planning web app for World of Warcraft. Players use it to build, share, and collaborate on pull-by-pull routes through Mythic+ dungeons. Routes can be imported from MythicDungeonTools (MDT), a popular WoW addon, and top routes can be fetched from Warcraft Logs.
+
+## Commands
+
+```bash
+yarn dev          # Vite dev server (frontend only, port 5173)
+yarn server       # Express API server (backend, required for WCL)
+yarn rtc          # WebSocket signaling server (required for real-time collaboration)
+yarn build        # tsc + vite build (client + Vercel server bundle)
+yarn lint         # ESLint with --max-warnings 0 (zero tolerance)
+
+# Data generation scripts (run occasionally to refresh game data)
+yarn dungeons     # Parse MDT Lua submodule → src/data/mdtDungeons/*.json
+yarn r            # Fetch top WCL routes → src/data/sampleRoutes/<dungeon>/
+yarn spells       # Extract spell IDs from dungeon data
+yarn cooldowns    # Mine interrupt cooldowns from WCL; prints only, hand-copy into spellCooldowns.ts
+yarn offsets      # Verify mdtMapOffsets.ts against cached WCL fights (see docs/new-season-setup.md)
+
+yarn rankings:download   # Vercel Blob → src/data/sampleRoutes/<dungeon>/ (restores yarn r's cache)
+yarn rankings:upload     # src/data/sampleRoutes/<dungeon>/ → Vercel Blob (publishes to prod)
+```
+
+Full local dev requires all three servers (`dev`, `server`, `rtc`) running concurrently.
+
+## Architecture
+
+### Frontend (src/)
+
+React + Redux SPA. The Redux store is the single source of truth for all route data:
+
+- **`src/util/types.ts`** — Core domain types: `Route`, `Pull`, `Drawing`, `Note`, `Assignments`. A `Route` has a `dungeonKey`, an ordered list of `Pull`s (each containing `SpawnId[]`), and drawings/notes/assignments.
+- **`src/data/types.ts`** — Static game data types: `Dungeon`, `Mob`, `MobSpawn`, `Spawn`, `Spell`. These are immutable reference data loaded at startup.
+- **`src/store/routes/`** — Primary Redux slice. `routesReducer.ts` holds active route + savedRoutes list. Routes persist to IndexedDB via redux-persist + localforage. The routes slice is wrapped in `redux-undo`.
+- **`src/store/listener.ts`** — Side-effect middleware (listenerMiddleware). Async reactions to Redux actions live here.
+- **`src/components/Map/`** — Leaflet-based dungeon map. Renders mob spawns, pull numbers, drawings, and annotations as Leaflet layers.
+- **`src/components/Sidebar/`** — Pull list, mob details, route management.
+- **`src/components/Collab/`** — Real-time collaboration UI (Yjs awareness state, peer presence).
+- **`src/util/mdtUtil.ts`** — Convert between `Route` and `MdtRoute`, the addon's own route shape.
+- **`src/util/mdt/`** — The `!~MDT2~` string codec (CBOR → raw deflate → base64), matching
+  `MythicDungeonTools/Modules/Transmission.lua`. Runs entirely in the browser.
+- **`src/util/wclCalc.ts`** — Parses raw Warcraft Logs fight events into a `Route`.
+
+### Data pipeline
+
+```
+MythicDungeonTools/ (git submodule, Lua)
+    ↓  yarn dungeons
+src/data/mdtDungeons/*.json          ← static game data bundled into the app
+src/data/sampleRoutes/*.ts           ← hand-curated "easy" routes, compiled into the bundle
+
+Warcraft Logs
+    ↓  yarn r  (.github/workflows/sync-rankings.yml, every 6h)
+src/data/sampleRoutes/<dungeon>/*.json   ← gitignored working dir, not shipped
+    ↓  yarn rankings:upload
+Vercel Blob: rankings/manifest.json + rankings/<version>/<dungeon>.json
+    ↓  fetched at runtime by src/api/rankingsApi.ts on page load
+```
+
+Ranked routes are **not** in git and **not** in the bundle — the sync job publishes blobs directly,
+so refreshing rankings needs no commit and no redeploy. The manifest is short-cached (60s, the
+Vercel Blob minimum) and points at immutable version-hashed payloads, so all dungeons stay
+consistent with each other. `yarn rankings:download` restores the local working dir; `yarn r` skips
+routes whose file already exists, so skipping the download makes a sync run re-fetch all of WCL.
+
+To inspect a local `yarn r` run without publishing, set `VITE_RANKINGS_BASE_URL=http://localhost:5173`
+— `vite/localRankingsPlugin.ts` serves the local `<dungeon>/` folders in the blob layout (dev only).
+
+`SpawnId` strings (e.g. `"12-3"`) identify individual mob spawns: `enemyIndex-spawnIndex`. These are the atomic units stored in `Pull.spawns`.
+
+### Backend (server/)
+
+Express server with one route:
+- `POST /api/wclRoute` — fetch a specific WCL fight and return a parsed `Route`
+
+MDT string encoding/decoding used to live here because it needed a native module. It is now done
+in the browser (`src/util/mdt/`), so importing and exporting routes works without the server.
+
+WCL OAuth tokens are cached in `server/cache/`. Dungeon rankings cache is also stored there.
+
+### Real-time collaboration (rtc-server/)
+
+Standalone WebSocket server. Implements topic-based pub/sub for WebRTC signaling. Clients use Yjs CRDTs for conflict-free merging of route edits; the RTC server only brokers the peer connections.
+
+### Deployment
+
+Deployed on Vercel. `vite.config.vercelServer.ts` bundles the Express server as Vercel serverless functions. Vercel picks up `api/*.js` by filesystem convention (`vercel.json` only sets cache headers). The RTC server deploys separately.
+
+Requires `VITE_RANKINGS_BASE_URL` in the Vercel project env, or the sample routes dropdown falls back to the compiled-in "easy" routes only.
+
+## Key conventions
+
+- **`Point` is `[y, x]`** (not `[x, y]`) — this matches Leaflet's coordinate system.
+- Game data types (`Dungeon`, `Mob`, etc.) live in `src/data/types.ts`; route/user-created types (`Route`, `Pull`, etc.) live in `src/util/types.ts`.
+- `MobFake` / `SpawnFake` / `MdtDungeonFake` types exist only to accept raw JSON (where tuples are typed as `number[]`); cast to the real types after loading.
+- Thin test suite (`yarn test`, vitest). `vitest.config.ts` only picks up `src/**/*.test.ts` — note
+  `.ts`, not `.tsx`, so component tests are not collected. It is a **bare config with no plugins**,
+  so `import.meta.compileTime` is never transformed: anything importing `src/data/spells/spells.ts`
+  or `sampleRoutes.ts` is untestable. Most correctness is still verified manually and via TypeScript.
+
+## Behavior
+- I am a senior dev
+- Don't hesitate to ask me to debug something
+- When we are debugging, don't delete my debug logs
+- When the solution is unclear, **discuss approaches before implementing**. It is better to ask questions than to make assumptions.
+- Exact specifications: When given exact values (like font sizes, dimensions), use them precisely
+- Component extraction: Prefer extracting functionality into separate components for better organization
+- Clean separation: Separate concerns between UI logic and business logic
+
+## Linting
+- In javascript, always use braces with single line if/for/while blocks

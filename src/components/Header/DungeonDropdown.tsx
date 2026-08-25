@@ -34,7 +34,7 @@ export function DungeonDropdown() {
           >
             <img
               className="rounded border border-gray-600 w-10 h-10"
-              src={`https://wow.zamimg.com/images/wow/icons/large/${dungeon.icon}.jpg`}
+              src={`/images/dungeons/${dungeon.key}.jpg`}
               alt={names.full}
             />
             <div className="absolute bottom-0 text-outline">{names.short}</div>

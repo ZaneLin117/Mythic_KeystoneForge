@@ -7,7 +7,7 @@ import { isEventInInput, shortcuts } from '../../../data/shortcuts.ts'
 import { useAppDispatch, useRootSelector } from '../../../store/storeUtil.ts'
 import { useI18n } from '../../../i18n/useI18n.ts'
 
-const canPasteFromClipboard = !!navigator.clipboard.readText
+const canPasteFromClipboard = typeof navigator.clipboard?.readText === 'function'
 
 interface Props {
   hidden?: boolean

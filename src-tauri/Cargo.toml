@@ -1,0 +1,23 @@
+[package]
+name = "keystone-forge"
+version = "0.1.0"
+description = "A local MDT route planner for World of Warcraft Mythic Keystone dungeons"
+authors = ["ZaneLin117"]
+edition = "2021"
+
+[lib]
+name = "keystone_forge_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

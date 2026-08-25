@@ -40,7 +40,7 @@ export function MobileDungeonDropdown() {
       >
         <img
           className="rounded border border-gray-600 w-10 h-10"
-          src={`https://wow.zamimg.com/images/wow/icons/large/${selected.icon}.jpg`}
+          src={`/images/dungeons/${selected.key}.jpg`}
           alt={selectedNames.full}
         />
         <div className="absolute bottom-0 text-outline">{selectedNames.short}</div>
@@ -63,7 +63,7 @@ export function MobileDungeonDropdown() {
               >
                 <img
                   className="rounded border border-gray-600 w-10 h-10"
-                  src={`https://wow.zamimg.com/images/wow/icons/large/${dungeon.icon}.jpg`}
+                  src={`/images/dungeons/${dungeon.key}.jpg`}
                   alt={names.full}
                 />
                 <div className="absolute bottom-0 text-outline">{names.short}</div>

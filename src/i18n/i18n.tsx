@@ -4,7 +4,7 @@ const localeStorageKey = 'mythic-route-studio:locale'
 
 const zhCN = {
   'brand.name': '秘境路线工坊',
-  'brand.tagline': 'Mythic Route Studio',
+  'brand.tagline': 'Keystone Forge',
   'brand.description': '面向《魔兽世界》史诗钥石地下城的本地路线规划工具。',
   'status.localAutosave': '本地自动保存',
   'route.workspace': '路线工作区',
@@ -135,7 +135,7 @@ const zhCN = {
 export type TranslationKey = keyof typeof zhCN
 
 const enUS: Record<TranslationKey, string> = {
-  'brand.name': 'Mythic Route Studio',
+  'brand.name': 'Keystone Forge',
   'brand.tagline': 'LOCAL MDT ROUTE PLANNER',
   'brand.description': 'A local route planner for World of Warcraft Mythic Keystone dungeons.',
   'status.localAutosave': 'Saved locally',
@@ -227,7 +227,8 @@ const enUS: Record<TranslationKey, string> = {
   'help.quickStart4': 'Import a sample route if you are not sure where to begin.',
   'help.importExport': 'Import and export',
   'help.importExport1': 'Import MDT accepts MDT2 strings exported by the game addon.',
-  'help.importExport2': 'Export MDT copies the current route so it can be pasted back into the game.',
+  'help.importExport2':
+    'Export MDT copies the current route so it can be pasted back into the game.',
   'help.notes': 'Map and notes',
   'help.notes1': 'Right-click the map to add a note. Click to edit it or drag to move it.',
   'help.tips': 'Tips',
@@ -289,9 +290,6 @@ export function translate(
   )
 }
 
-export function translateCurrent(
-  key: TranslationKey,
-  values?: Record<string, string | number>,
-) {
+export function translateCurrent(key: TranslationKey, values?: Record<string, string | number>) {
   return translate(getStoredLocale(), key, values)
 }

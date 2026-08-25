@@ -5,6 +5,15 @@ import { localRankingsPlugin } from './vite/localRankingsPlugin.ts'
 
 export default defineConfig({
   plugins: [react(), splitVendorChunkPlugin(), compileTime(), localRankingsPlugin()],
+  clearScreen: false,
+  server: {
+    port: 5173,
+    strictPort: true,
+    watch: {
+      ignored: ['**/src-tauri/**'],
+    },
+  },
+  envPrefix: ['VITE_', 'TAURI_ENV_*'],
   build: {
     rollupOptions: {
       output: {

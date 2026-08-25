@@ -15,7 +15,12 @@ lerna-debug.log*
 
 node_modules
 dist
+dist-desktop
 dist-ssr
+release
+src-tauri/target
+src-tauri/gen/schemas
+keystone-forge-dist*.tar.gz
 *.local
 
 # Editor directories and files

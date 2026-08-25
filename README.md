@@ -17,6 +17,7 @@ Keystone Forge（秘境路线工坊）是一款兼容 [Mythic Dungeon Tools（MD
 - 路线自动保存到浏览器本地存储
 - 中文、英文界面切换
 - 内置当前数据版本的 8 个副本与参考路线
+- 可构建为免安装的 Windows 单文件 EXE
 - 可选接入 Warcraft Logs 路线、链接分享、云端同步和实时协作
 
 ## 当前状态
@@ -68,19 +69,45 @@ git submodule update --init --recursive
 
 ## 常用命令
 
-| 命令                             | 用途                                         |
-| -------------------------------- | -------------------------------------------- |
-| `corepack yarn@1.22.22 dev`      | 启动 Vite 前端开发服务器                     |
-| `corepack yarn@1.22.22 test`     | 运行 Vitest 测试                             |
-| `corepack yarn@1.22.22 lint`     | 运行 ESLint，警告也会导致失败                |
-| `corepack yarn@1.22.22 build`    | 执行类型检查并构建客户端和 Vercel 服务端产物 |
-| `corepack yarn@1.22.22 preview`  | 本地预览生产构建                             |
-| `corepack yarn@1.22.22 server`   | 启动 Warcraft Logs Express API               |
-| `corepack yarn@1.22.22 rtc`      | 启动实时协作信令服务器                       |
-| `corepack yarn@1.22.22 dungeons` | 从 MDT Lua 数据重新生成副本 JSON             |
-| `corepack yarn@1.22.22 offsets`  | 检查 MDT 地图与 WCL 坐标偏移                 |
+| 命令                                  | 用途                                         |
+| ------------------------------------- | -------------------------------------------- |
+| `corepack yarn@1.22.22 dev`           | 启动 Vite 前端开发服务器                     |
+| `corepack yarn@1.22.22 test`          | 运行 Vitest 测试                             |
+| `corepack yarn@1.22.22 lint`          | 运行 ESLint，警告也会导致失败                |
+| `corepack yarn@1.22.22 build`         | 执行类型检查并构建客户端和 Vercel 服务端产物 |
+| `corepack yarn@1.22.22 desktop:build` | 构建免安装的 Windows 单文件 EXE              |
+| `corepack yarn@1.22.22 desktop:dev`   | 启动 Tauri 桌面开发模式                      |
+| `corepack yarn@1.22.22 preview`       | 本地预览生产构建                             |
+| `corepack yarn@1.22.22 server`        | 启动 Warcraft Logs Express API               |
+| `corepack yarn@1.22.22 rtc`           | 启动实时协作信令服务器                       |
+| `corepack yarn@1.22.22 dungeons`      | 从 MDT Lua 数据重新生成副本 JSON             |
+| `corepack yarn@1.22.22 offsets`       | 检查 MDT 地图与 WCL 坐标偏移                 |
 
 更新新赛季数据前，请先阅读 [`docs/new-season-setup.md`](docs/new-season-setup.md)。
+
+## Windows 单文件版
+
+桌面版使用 Tauri 2 构建，前端代码、地图和 NPC 头像都会嵌入 EXE，不需要携带 `dist` 目录，也不需要在目标电脑安装 Node.js 或 Rust。目标电脑需要系统 WebView2；Windows 10 和 Windows 11 通常已预装。
+
+构建环境还需要：
+
+- Rust stable MSVC 工具链
+- Microsoft C++ Build Tools 的“使用 C++ 的桌面开发”工作负载
+- Microsoft Edge WebView2 Runtime
+
+安装依赖后执行：
+
+```powershell
+corepack yarn@1.22.22 desktop:build
+```
+
+生成文件：
+
+```text
+src-tauri/target/release/keystone-forge.exe
+```
+
+桌面构建会强制关闭云端、协作、路线分享和分析功能，并仅打包当前 8 个副本需要的地图与 NPC 头像。路线仍会保存在 WebView2 的用户数据目录中。
 
 ## 可选在线功能
 
