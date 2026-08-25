@@ -47,7 +47,7 @@ export const sampleRouteDefinitions: Record<DungeonKey, SampleRouteDefinition[]>
   ],
   vale: [
     {
-      mdt: '!~MDT2~TY/Nb9NAEMXZtde7Xpvy1Y+hcEDiXuXgAzkiElWlB4oQZ3Cc3drt2i7xOrS3jNOCBP8Fqi3xXyKjVO5pNPPe72leN7Hq0n6eKB3Xxr6y6UKpJFWVPcjKyXelzsn7eaZ1ltTGXtF3dTY/XkapSuMyz+N8uoxNrbrjpF4sVGFPamMefNgsn+qZUUtlyMfNYVIXp6osjuaX8OeoUkYlNiuL1fSiNqb63XEUoqGOvybUkQ11AmTTpDTl4vC11tFI646hy9EXSPwbl3kykOjeOXp9rFuOW6JhnkQWoHefjka39Hp7Z3dPNlwEyAdu9kbrlq4B4DnsM/Q4PhIoBran/5I17MMLeEl/QQoZnMEFfINzMJBDAaWDxEXG0PGQcHws0L//VjTqOD4RKP2bp8+2d3Yl+uHweK+PdUuv4Qt8hRhmogkDiTIc2vchWrekET79KXwZhA+3QnT2kAwhYx2NbhlyvqaOGyId2J5uyQ/quMzjdDMZUq+hzp1r/L/liSpUfvW2qrLTIleFrVaH5exMJbZa/QM=',
+      mdt: '!~MDT2~TY9Nb9NAEIbZXa93vTblG1bAAYk7ysEHckQkqkoPFCF+QOLM1m7Xdol3Q3vLOCpI8C8gscS/REap3NNo5n0ead5u4uDSfZmAmXnrXrl8CZDl0Lg3RT35BnBOPiwKY4rMW3dF3/ticbxKc8hndVnOyulqZj10x5lfLqFyJ97aOx/3y2c/t7ACSz7tDxNfnUJdHS0u9e+jBixkrqir9fTCW9v86gRK2VIWbQhlqqUsRj7NalsvD18bk46M6TgGAiOJJLoOeKhihcEN0edjsxN4IFseKuQxhrftdPRHtULGKAZj/taYLcdQ4D2JcqB7/i/Z6Of6hX5Jf+pcF/pMX+iv+lxbXepK1wxJgJwjC5EIvC8xuv1IOuoEPpCoouuHjx4/eaowSoZX+3xstrJNYoUqGVr2qjE70sqI/pCRipO7BwmyZ0gGdWzS0ZajEBvKggTp4Pb2jnynLOChoPvJkYYtZTfU+H+3E6igvHrXNMVpVULlmvVhPT+DzDXrfw==',
       name: `Tactyks Easy`,
     },
   ],
