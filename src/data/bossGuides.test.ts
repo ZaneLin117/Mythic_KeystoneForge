@@ -29,12 +29,12 @@ describe('boss guides', () => {
     expect(nonBossGuides).toEqual([])
   })
 
-  it('maps all 36 boss NPCs across 28 encounters', () => {
+  it('maps all 37 boss NPCs across 28 encounters', () => {
     const mappedGuides = dungeonKeys.flatMap((dungeonKey) =>
       Object.values(bossGuides[dungeonKey] ?? {}),
     )
 
-    expect(mappedGuides).toHaveLength(36)
+    expect(mappedGuides).toHaveLength(37)
     expect(new Set(mappedGuides)).toHaveLength(28)
   })
 })

@@ -175,6 +175,7 @@ export const bossGuides: Partial<Record<DungeonKey, Record<number, BossGuide>>> 
     269810: kr3,
     269811: kr3,
     136160: krFinal,
+    136976: krFinal,
   },
   tos: {
     262530: tos1,
