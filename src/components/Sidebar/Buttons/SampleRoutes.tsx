@@ -29,6 +29,7 @@ import {
 } from '../../../util/wclRankings.ts'
 import { trackEvent } from '../../../util/analytics.ts'
 import { useI18n } from '../../../i18n/useI18n.ts'
+import { getIconLink } from '../../../data/spells/spells.ts'
 
 type SampleRouteOption = SampleRoute & DropdownOption
 
@@ -221,7 +222,7 @@ export function SampleRoutes({ hidden }: Props) {
               className={`rounded overflow-hidden border ${selectedSpec?.class === spec.class && selectedSpec?.spec === spec.spec ? 'border-white' : 'border-transparent'}`}
             >
               <img
-                src={`https://wow.zamimg.com/images/wow/icons/large/${spec.icon}.jpg`}
+                src={getIconLink(spec.icon)}
                 width={22}
                 height={22}
                 alt={`${spec.spec} ${spec.class}`}

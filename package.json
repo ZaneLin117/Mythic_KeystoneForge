@@ -25,6 +25,7 @@
     "locales:spells": "tsx scripts/syncSpellLocales.ts",
     "offsets": "tsx scripts/checkMapOffsets.ts",
     "spells": "tsx scripts/guessDungeonSpells.ts",
+    "icons:spells": "tsx scripts/downloadSpellIcons.ts",
     "cooldowns": "tsx scripts/guessSpellCooldowns.ts",
     "r": "tsx scripts/queryRankings.ts",
     "rankings:download": "tsx scripts/downloadRankings.ts",

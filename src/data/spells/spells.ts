@@ -1,8 +1,10 @@
 import type { DungeonSpells } from './dungeonSpells.ts'
+import { publicAssetUrl } from '../../util/publicAssetUrl.ts'
+import { normalizeSpellIconName } from './spellIconName.ts'
 
 export const dungeonSpells = import.meta.compileTime<DungeonSpells>('./dungeonSpells.ts')
 
 export function getIconLink(icon: string) {
-  if (!icon.endsWith('.jpg')) icon += '.jpg'
-  return `https://wow.zamimg.com/images/wow/icons/large/${icon}`
+  const iconName = normalizeSpellIconName(icon)
+  return publicAssetUrl(`spell_icons/${encodeURIComponent(iconName)}.jpg`)
 }
