@@ -8,6 +8,29 @@ interface WclJson<T> {
   data: T
 }
 
+const WCL_RATE_LIMIT_ERROR = /too many requests/i
+const DEFAULT_RATE_LIMIT_RETRY_DELAY_MS = 5 * 60 * 1000
+const DEFAULT_RATE_LIMIT_MAX_RETRIES = 13
+
+function positiveIntegerEnv(name: string, fallback: number): number {
+  const value = Number(process.env[name])
+  return Number.isInteger(value) && value > 0 ? value : fallback
+}
+
+function retryAfterMs(response: Response): number | null {
+  const value = response.headers.get('retry-after')
+  if (!value) return null
+
+  const seconds = Number(value)
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1000)
+
+  const timestamp = Date.parse(value)
+  return Number.isNaN(timestamp) ? null : Math.max(0, timestamp - Date.now())
+}
+
+const sleep = (milliseconds: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, milliseconds))
+
 export interface PagedEventsQuery<TEvent> {
   reportData: {
     report: {
@@ -55,24 +78,44 @@ export interface WclFight {
 }
 
 export async function fetchWcl<T>(query: string): Promise<T> {
-  const token = await getWclToken()
-  const data = await fetch('https://www.warcraftlogs.com/api/v2/client', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ query }),
-  })
+  const retryDelayMs = positiveIntegerEnv(
+    'WCL_RATE_LIMIT_RETRY_DELAY_MS',
+    DEFAULT_RATE_LIMIT_RETRY_DELAY_MS,
+  )
+  const maxRetries = positiveIntegerEnv(
+    'WCL_RATE_LIMIT_MAX_RETRIES',
+    DEFAULT_RATE_LIMIT_MAX_RETRIES,
+  )
 
-  const json = (await data.json()) as WclJson<T>
+  for (let retry = 0; ; retry++) {
+    const token = await getWclToken()
+    const response = await fetch('https://www.warcraftlogs.com/api/v2/client', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ query }),
+    })
 
-  const error = json.error ?? json.errors?.[0]?.message
-  if (error) {
-    throw new Error(error)
+    const json = (await response.json()) as WclJson<T>
+    const error = json.error ?? json.errors?.[0]?.message
+    if (!error) return json.data
+
+    if (!WCL_RATE_LIMIT_ERROR.test(error) || retry >= maxRetries) {
+      throw new Error(error)
+    }
+
+    // WCL limits API keys by points per hour. Its error response does not always include
+    // rateLimitData, so honor Retry-After when present and otherwise wait in coarse intervals
+    // until the hourly budget resets. The extra second avoids retrying on the reset boundary.
+    const waitMs = (retryAfterMs(response) ?? retryDelayMs) + 1000
+    console.warn(
+      `WCL rate limit reached; retrying in ${Math.ceil(waitMs / 1000)}s ` +
+        `(attempt ${retry + 1}/${maxRetries})`,
+    )
+    await sleep(waitMs)
   }
-
-  return json.data
 }
 
 export async function getFight(code: string, fightId: 'last' | string | number): Promise<WclFight> {

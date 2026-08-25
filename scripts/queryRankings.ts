@@ -90,10 +90,16 @@ for (const { dungeonFolder, rankings, dungeonKey } of dungeonRankings) {
     try {
       result = (await getWclRoute(code, fightID, ignoreCache)).result
     } catch (e) {
-      if ((e as Error).message === 'You do not have permission to view this report.') {
+      const message = (e as Error).message
+      if (message === 'You do not have permission to view this report.') {
         console.log(`Private log: ${code}`)
         continue
       }
+      // A rate-limit failure is global to the API key. Never turn it into a partial but
+      // apparently successful Pages publication if the retry budget in fetchWcl is exhausted.
+      if (/too many requests/i.test(message)) throw e
+
+      console.error(`Failed to build ${code}-${fightID}: ${message}`)
     }
     if (!result) {
       continue
