@@ -23,8 +23,8 @@ yarn spells       # Extract spell IDs from dungeon data
 yarn cooldowns    # Mine interrupt cooldowns from WCL; prints only, hand-copy into spellCooldowns.ts
 yarn offsets      # Verify mdtMapOffsets.ts against cached WCL fights (see docs/new-season-setup.md)
 
-yarn rankings:download   # Vercel Blob → src/data/sampleRoutes/<dungeon>/ (restores yarn r's cache)
-yarn rankings:upload     # src/data/sampleRoutes/<dungeon>/ → Vercel Blob (publishes to prod)
+yarn rankings:download   # GitHub Pages → local ranking cache + staged public/rankings snapshot
+yarn rankings:publish    # local ranking cache → versioned public/rankings JSON
 ```
 
 Full local dev requires all three servers (`dev`, `server`, `rtc`) running concurrently.
@@ -58,19 +58,20 @@ src/data/sampleRoutes/*.ts           ← hand-curated "easy" routes, compiled in
 Warcraft Logs
     ↓  yarn r  (.github/workflows/sync-rankings.yml, every 6h)
 src/data/sampleRoutes/<dungeon>/*.json   ← gitignored working dir, not shipped
-    ↓  yarn rankings:upload
-Vercel Blob: rankings/manifest.json + rankings/<version>/<dungeon>.json
+    ↓  yarn rankings:publish + yarn build:pages
+GitHub Pages artifact: rankings/manifest.json + rankings/<version>/<dungeon>.json
     ↓  fetched at runtime by src/api/rankingsApi.ts on page load
 ```
 
-Ranked routes are **not** in git and **not** in the bundle — the sync job publishes blobs directly,
-so refreshing rankings needs no commit and no redeploy. The manifest is short-cached (60s, the
-Vercel Blob minimum) and points at immutable version-hashed payloads, so all dungeons stay
-consistent with each other. `yarn rankings:download` restores the local working dir; `yarn r` skips
-routes whose file already exists, so skipping the download makes a sync run re-fetch all of WCL.
+Ranked routes are **not** in git or the JavaScript bundle. The sync job stages versioned JSON and
+redeploys the Pages artifact. The manifest points at immutable version-hashed payloads and retains
+one previous generation, so all dungeons stay consistent across a deployment. A normal code Pages
+deployment downloads and re-stages the current snapshot before building, so it cannot erase the
+latest rankings. `yarn rankings:download` also restores the local working dir; `yarn r` skips routes
+whose file already exists, so skipping the download makes a sync run re-fetch all of WCL.
 
 To inspect a local `yarn r` run without publishing, set `VITE_RANKINGS_BASE_URL=http://localhost:5173`
-— `vite/localRankingsPlugin.ts` serves the local `<dungeon>/` folders in the blob layout (dev only).
+— `vite/localRankingsPlugin.ts` serves the local `<dungeon>/` folders in the published layout (dev only).
 
 `SpawnId` strings (e.g. `"12-3"`) identify individual mob spawns: `enemyIndex-spawnIndex`. These are the atomic units stored in `Pull.spawns`.
 
@@ -90,9 +91,14 @@ Standalone WebSocket server. Implements topic-based pub/sub for WebRTC signaling
 
 ### Deployment
 
-Deployed on Vercel. `vite.config.vercelServer.ts` bundles the Express server as Vercel serverless functions. Vercel picks up `api/*.js` by filesystem convention (`vercel.json` only sets cache headers). The RTC server deploys separately.
+The public static site is deployed to GitHub Pages by `.github/workflows/deploy-pages.yml`. Cloud,
+collaboration, sharing, analytics, and the Express API are disabled in that build. The scheduled
+`.github/workflows/sync-rankings.yml` job fetches WCL data, stages ranking JSON, and redeploys the
+same Pages artifact every six hours. Both workflows set the repository base path and
+`VITE_RANKINGS_BASE_URL` automatically.
 
-Requires `VITE_RANKINGS_BASE_URL` in the Vercel project env, or the sample routes dropdown falls back to the compiled-in "easy" routes only.
+`vite.config.vercelServer.ts` and `vercel.json` remain available for a future full-stack Vercel
+deployment. The RTC server deploys separately.
 
 ## Key conventions
 

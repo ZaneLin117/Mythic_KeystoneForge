@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
@@ -33,10 +33,21 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      # A Pages deployment replaces the whole artifact. Rehydrate the current ranking snapshot so
+      # an ordinary code push cannot erase the data published by the scheduled workflow.
+      - name: Download published rankings
+        run: yarn rankings:download
+        env:
+          RANKINGS_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
+
+      - name: Stage published rankings
+        run: yarn rankings:publish --allow-empty
+
       - name: Build GitHub Pages site
         run: yarn build:pages
         env:
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_RANKINGS_BASE_URL: /${{ github.event.repository.name }}
           VITE_STATIC_DEPLOYMENT: true
           VITE_ENABLE_CLOUD: false
           VITE_ENABLE_COLLAB: false

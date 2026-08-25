@@ -2,7 +2,7 @@ import type { ServerResponse } from 'http'
 import type { Plugin } from 'vite'
 import { type DungeonKey, dungeonKeys } from '../src/data/dungeonKeys.ts'
 import {
-  blobPrefix,
+  rankingsPrefix,
   dungeonRouteFiles,
   type RankingsManifest,
   readDungeonRoutes,
@@ -11,9 +11,9 @@ import {
 /** Stands in for uploadRankings.ts's content hash. Never published, so it never has to change. */
 const localVersion = 'local'
 
-const manifestUrlPath = `/${blobPrefix}/manifest.json`
+const manifestUrlPath = `/${rankingsPrefix}/manifest.json`
 
-const dungeonUrlPrefix = `/${blobPrefix}/${localVersion}/`
+const dungeonUrlPrefix = `/${rankingsPrefix}/${localVersion}/`
 
 const isDungeonKey = (value: string): value is DungeonKey =>
   (dungeonKeys as readonly string[]).includes(value)
@@ -33,7 +33,7 @@ function sendJson(res: ServerResponse, body: string) {
 }
 
 /**
- * Serves src/data/sampleRoutes/<dungeon>/ in the Vercel Blob store's layout, so pointing
+ * Serves src/data/sampleRoutes/<dungeon>/ in the published Pages layout, so pointing
  * VITE_RANKINGS_BASE_URL at the dev server previews a local `yarn r` run without publishing to
  * production. Dev only.
  */

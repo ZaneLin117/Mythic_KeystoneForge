@@ -1,28 +1,51 @@
 name: Sync Rankings
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sync-rankings.yml'
+      - 'scripts/*Rankings.ts'
+      - 'scripts/rankings*.ts'
+      - 'server/wcl*.ts'
   schedule:
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
 jobs:
   sync:
     runs-on: ubuntu-latest
-    env:
-      BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: yarn
 
-      - run: yarn install
+      - name: Enable Corepack
+        run: corepack enable
 
-      # Rehydrates src/data/sampleRoutes/ from the published blobs. queryRankings.ts skips routes
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      # Rehydrates src/data/sampleRoutes/ from the published JSON. queryRankings.ts skips routes
       # whose file already exists, so without this every run re-fetches every fight from WCL.
       - name: Download published rankings
         run: yarn rankings:download
+        env:
+          RANKINGS_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
 
       # No continue-on-error: a partial fetch must not reach the upload step.
       - name: Query rankings
@@ -31,5 +54,35 @@ jobs:
           WCL_CLIENT_SECRET: ${{ secrets.WCL_CLIENT_SECRET }}
         run: yarn r
 
-      - name: Publish rankings
-        run: yarn rankings:upload
+      - name: Stage rankings JSON
+        run: yarn rankings:publish
+
+      - name: Build GitHub Pages site
+        run: yarn build:pages
+        env:
+          VITE_BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_RANKINGS_BASE_URL: /${{ github.event.repository.name }}
+          VITE_STATIC_DEPLOYMENT: true
+          VITE_ENABLE_CLOUD: false
+          VITE_ENABLE_COLLAB: false
+          VITE_ENABLE_ROUTE_SHARING: false
+          VITE_ENABLE_ANALYTICS: false
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: sync
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy rankings and site
+        id: deployment
+        uses: actions/deploy-pages@v4

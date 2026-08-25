@@ -73,9 +73,9 @@ async function convertRouteDefinition({ name, mdt }: SampleRouteDefinition): Pro
 export type SampleRoutes = Record<DungeonKey, SampleRoute[]>
 
 /**
- * Only the hand-curated "easy" routes are compiled in. The WCL-ranked routes are published to
- * blob storage by the sync-rankings workflow and fetched at runtime (see src/api/rankingsApi.ts),
- * so refreshing them no longer requires a rebuild.
+ * Only the hand-curated "easy" routes are compiled in. The WCL-ranked routes are published as
+ * static GitHub Pages JSON by the sync-rankings workflow and fetched at runtime (see
+ * src/api/rankingsApi.ts).
  */
 const easySampleRoutes = dungeonKeys.reduce((acc, key) => {
   acc[key as DungeonKey] = []

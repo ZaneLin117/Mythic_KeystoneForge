@@ -14,6 +14,9 @@ interface RankingsManifest {
  */
 const manifestUrl = () => `${rankingsBaseUrl}/rankings/manifest.json`
 
+const resolveRankingUrl = (urlOrPath: string) =>
+  /^https?:\/\//i.test(urlOrPath) ? urlOrPath : `${rankingsBaseUrl}/${urlOrPath.replace(/^\//, '')}`
+
 let manifestPromise: Promise<RankingsManifest> | undefined
 const dungeonPromises = new Map<DungeonKey, Promise<SampleRoute[]>>()
 
@@ -45,7 +48,7 @@ export function fetchRankedRoutes(dungeonKey: DungeonKey): Promise<SampleRoute[]
   const promise = manifestPromise
     .then((manifest) => {
       const url = manifest.dungeons[dungeonKey]
-      return url ? fetchJson<SampleRoute[]>(url) : []
+      return url ? fetchJson<SampleRoute[]>(resolveRankingUrl(url)) : []
     })
     .catch((e: unknown) => {
       dungeonPromises.delete(dungeonKey)

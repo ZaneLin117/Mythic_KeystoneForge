@@ -28,7 +28,7 @@
     "cooldowns": "tsx scripts/guessSpellCooldowns.ts",
     "r": "tsx scripts/queryRankings.ts",
     "rankings:download": "tsx scripts/downloadRankings.ts",
-    "rankings:upload": "tsx scripts/uploadRankings.ts"
+    "rankings:publish": "tsx scripts/publishRankings.ts"
   },
   "engines": {
     "node": ">=20"
@@ -84,7 +84,6 @@
     "@types/ws": "8.5.10",
     "@typescript-eslint/eslint-plugin": "7.6.0",
     "@typescript-eslint/parser": "7.6.0",
-    "@vercel/blob": "2.7.0",
     "@vitejs/plugin-react-swc": "3.6.0",
     "autoprefixer": "10.4.19",
     "cors": "2.8.5",

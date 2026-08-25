@@ -8,6 +8,9 @@ const dirname = getDirname(import.meta.url)
 
 export const sampleRoutesFolder = path.join(dirname, '../src/data/sampleRoutes')
 
+/** Generated static files that Vite copies into the GitHub Pages artifact. */
+export const publicRankingsFolder = path.join(dirname, '../public/rankings')
+
 export const dungeonFolder = (dungeonKey: DungeonKey) => path.join(sampleRoutesFolder, dungeonKey)
 
 /** File names of the locally cached ranked routes for one dungeon, sorted. */
@@ -51,20 +54,19 @@ export const sampleRouteFileName = (sampleRoute: SampleRoute) => {
   return toFileName(sampleRoute.wclRanking.report)
 }
 
-export const blobPrefix = 'rankings'
-export const manifestPath = `${blobPrefix}/manifest.json`
+export const rankingsPrefix = 'rankings'
+export const manifestPath = `${rankingsPrefix}/manifest.json`
 
-export const dungeonBlobPath = (version: string, dungeonKey: DungeonKey) =>
-  `${blobPrefix}/${version}/${dungeonKey}.json`
-
-/** Pulls "a1b2c3d4" out of "rankings/a1b2c3d4/aa.json". Null for the manifest itself. */
-export const versionFromBlobPath = (pathname: string): string | null => {
-  const match = new RegExp(`^${blobPrefix}/([^/]+)/[^/]+\\.json$`).exec(pathname)
-  return match?.[1] ?? null
-}
+export const dungeonPublishedPath = (version: string, dungeonKey: DungeonKey) =>
+  `${rankingsPrefix}/${version}/${dungeonKey}.json`
 
 export interface RankingsManifest {
   version: string
-  /** Full blob URLs, so the client never has to encode the layout above. */
+  /** Absolute URLs or paths relative to the configured rankings base URL. */
   dungeons: Partial<Record<DungeonKey, string>>
+  /** One fallback generation for clients that resolved the manifest just before a deployment. */
+  previous?: {
+    version: string
+    dungeons: Partial<Record<DungeonKey, string>>
+  }
 }

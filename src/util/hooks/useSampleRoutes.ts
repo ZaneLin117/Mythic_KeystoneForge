@@ -7,7 +7,7 @@ import { rankingsBaseUrl } from '../../api/api.ts'
 import { sortSampleRoutes } from '../wclRankings.ts'
 
 /**
- * Merges the compiled-in "easy" routes with the WCL-ranked routes fetched from blob storage.
+ * Merges the compiled-in "easy" routes with the WCL-ranked routes fetched from static storage.
  * Fetches on mount so the dropdown is already populated by the time it's opened.
  */
 export function useSampleRoutes(dungeonKey: DungeonKey) {

@@ -3,8 +3,7 @@
 export const apiBaseUrl = isDev ? 'http://localhost:6173/api' : '/api'
 
 /**
- * Public Vercel Blob store holding the WCL-ranked sample routes, published by
- * scripts/uploadRankings.ts. Not a secret — it's fetched directly by the browser. Dev points at
- * the production store, so there's no local rankings data to keep in sync.
+ * Public root holding the WCL-ranked sample routes. On GitHub Pages this is the repository base
+ * path; local development can override it to preview either local or published ranking JSON.
  */
-export const rankingsBaseUrl = import.meta.env.VITE_RANKINGS_BASE_URL
+export const rankingsBaseUrl = (import.meta.env.VITE_RANKINGS_BASE_URL ?? '').replace(/\/$/, '')

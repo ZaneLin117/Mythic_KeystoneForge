@@ -121,16 +121,16 @@ VITE_ENABLE_ANALYTICS=false
 VITE_STATIC_DEPLOYMENT=false
 ```
 
-| 配置                                  | 说明                                      |
-| ------------------------------------- | ----------------------------------------- |
-| `WCL_CLIENT_ID` / `WCL_CLIENT_SECRET` | Warcraft Logs API 凭据                    |
-| `VITE_RANKINGS_BASE_URL`              | 排行路线数据的公共基地址                  |
-| `BLOB_READ_WRITE_TOKEN`               | 排行路线同步脚本使用的 Vercel Blob 令牌   |
-| `VITE_ENABLE_CLOUD`                   | 启用登录和云端路线同步                    |
-| `VITE_ENABLE_COLLAB`                  | 启用 Yjs/WebRTC 实时协作                  |
-| `VITE_ENABLE_ROUTE_SHARING`           | 启用路线链接分享                          |
-| `VITE_ENABLE_ANALYTICS`               | 启用分析统计                              |
-| `VITE_STATIC_DEPLOYMENT`              | 强制关闭云端、协作、分享、分析和 WCL 转换 |
+| 配置                                  | 说明                                         |
+| ------------------------------------- | -------------------------------------------- |
+| `WCL_CLIENT_ID` / `WCL_CLIENT_SECRET` | Warcraft Logs API 凭据                       |
+| `RANKINGS_BASE_URL`                   | 排行同步脚本下载现有 GitHub Pages 快照的地址 |
+| `VITE_RANKINGS_BASE_URL`              | 浏览器读取公开排行 JSON 的基础地址           |
+| `VITE_ENABLE_CLOUD`                   | 启用登录和云端路线同步                       |
+| `VITE_ENABLE_COLLAB`                  | 启用 Yjs/WebRTC 实时协作                     |
+| `VITE_ENABLE_ROUTE_SHARING`           | 启用路线链接分享                             |
+| `VITE_ENABLE_ANALYTICS`               | 启用分析统计                                 |
+| `VITE_STATIC_DEPLOYMENT`              | 强制关闭云端、协作、分享、分析和 WCL 转换    |
 
 启用这些开关前，还需要替换项目中的 Firebase、分享 API、RTC 和分析服务配置。仅设置为 `true` 并不能自动获得可用的在线服务。
 
