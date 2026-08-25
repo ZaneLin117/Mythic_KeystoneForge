@@ -5,6 +5,11 @@ import { useIsGuestCollab } from '../collab/collabReducer.ts'
 
 import { useActualRoute } from './routeHooks.ts'
 import { useAppDispatch } from '../storeUtil.ts'
+import { routeSharingEnabled } from '../../config/features.ts'
+
+function clearImportQuery() {
+  window.history.replaceState(null, '', import.meta.env.BASE_URL)
+}
 
 export function RouteSaver() {
   const dispatch = useAppDispatch()
@@ -16,18 +21,20 @@ export function RouteSaver() {
     const urlParams = new URLSearchParams(window.location.search)
 
     const routeId = urlParams.get('id')
-    if (routeId) {
+    if (routeId && routeSharingEnabled) {
       dispatch(importFirestoreRoute({ routeId }))
-      window.history.pushState(null, '', window.location.origin)
+      clearImportQuery()
       return
     }
 
     const mdtString = urlParams.get('mdt')
     if (mdtString) {
       dispatch(importMdtRoute({ text: mdtString }))
-      window.history.pushState(null, '', window.location.origin)
+      clearImportQuery()
       return
     }
+
+    if (routeId) clearImportQuery()
   }, [dispatch])
 
   // Whenever route UID or name changes, update saved routes, unless guest

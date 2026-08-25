@@ -10,6 +10,8 @@
     "server": "cross-env NODE_ENV=development tsx server/server.js",
     "rtc": "tsx rtc-server/rtc-server.ts",
     "build": "tsc && vite build && vite build -c vite.config.vercelServer.ts",
+    "build:pages": "tsc && vite build",
+    "build:workbuddy-preview": "tsx scripts/buildWorkbuddyPreview.ts",
     "build:desktop:web": "tsc && vite build --mode desktop --outDir dist-desktop && tsx scripts/prepareDesktopAssets.ts",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build --no-bundle",

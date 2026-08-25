@@ -8,6 +8,7 @@ import {
 import { marks } from '../../../util/marks.ts'
 import { useMemo } from 'react'
 import { useAppDispatch } from '../../../store/storeUtil.ts'
+import { publicAssetUrl } from '../../../util/publicAssetUrl.ts'
 
 interface Props {
   spawnId: SpawnId
@@ -23,7 +24,9 @@ export function MarkContextMenu({ spawnId, contextMenuPosition, onClose }: Props
 
   const buttons = useMemo<ContextMenuButton[]>(() => {
     return marks.map((mark) => ({
-      contents: <img height={16} width={16} src={`images/markers/${mark}.png`} alt={mark} />,
+      contents: (
+        <img height={16} width={16} src={publicAssetUrl(`images/markers/${mark}.png`)} alt={mark} />
+      ),
       onClick: () => {
         dispatch(setAssignment({ spawnId, assignment: mark }))
       },

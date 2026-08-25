@@ -5,6 +5,7 @@ import { countMobs } from '../../../util/mobSpawns.ts'
 import { useDungeon } from '../../../store/routes/routeHooks.ts'
 import { compareColors } from '../../../util/colors.ts'
 import type { PullCompareInfo } from './compareRows.ts'
+import { publicAssetUrl } from '../../../util/publicAssetUrl.ts'
 
 interface Props {
   compare: PullCompareInfo
@@ -16,7 +17,11 @@ type DiffKind = 'added' | 'removed' | 'moved'
 const marks: Record<DiffKind, { symbol: string; color: string; label: string }> = {
   added: { symbol: '+', color: compareColors.added, label: 'not in the compare route' },
   removed: { symbol: '−', color: compareColors.removed, label: 'not in this route' },
-  moved: { symbol: '↕', color: compareColors.moved, label: 'pulled elsewhere in the compare route' },
+  moved: {
+    symbol: '↕',
+    color: compareColors.moved,
+    label: 'pulled elsewhere in the compare route',
+  },
 }
 
 interface DiffEntry {
@@ -55,7 +60,7 @@ export function PullDiffPortraits({ compare, maxPortraits }: Props) {
           >
             <img
               className="h-full w-full rounded-full"
-              src={`/npc_portraits/${mob.id}.png`}
+              src={publicAssetUrl(`npc_portraits/${mob.id}.png`)}
               alt={`${mob.name} ${label}`}
             />
             <div

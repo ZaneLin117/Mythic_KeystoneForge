@@ -11,6 +11,7 @@ import { KickBadge } from './KickBadge.tsx'
 import { PullDiffPortraits } from './PullDiffPortraits.tsx'
 import { PullCompareColumns } from './PullCompareColumns.tsx'
 import type { PullCompareInfo } from './compareRows.ts'
+import { publicAssetUrl } from '../../../util/publicAssetUrl.ts'
 
 interface Props {
   pull: PullDetailed
@@ -91,7 +92,7 @@ export function Pull({ pull, ghost, compare, onRightClick, isShiftHeld }: Props)
                   >
                     <img
                       className="h-full rounded-full"
-                      src={`/npc_portraits/${mob.id}.png`}
+                      src={publicAssetUrl(`npc_portraits/${mob.id}.png`)}
                       alt={mob.name}
                     />
                     <div className="text-outline absolute bottom-[-2px] w-full font-bold text-xs text-center">

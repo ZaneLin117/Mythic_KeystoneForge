@@ -6,6 +6,7 @@ import { scaledDivIcon } from '../../../util/scaledIcon.ts'
 import { useMapObjectsHidden } from '../../../store/reducers/mapReducer.ts'
 import type { PointOfInterest as PointOfInterestType } from '../../../data/types.ts'
 import { getIconLink } from '../../../data/spells/spells.ts'
+import { publicAssetUrl } from '../../../util/publicAssetUrl.ts'
 
 interface Props {
   poi: PointOfInterestType
@@ -23,12 +24,12 @@ const configs: PoiConfig[] = [
   {
     type: 'dungeonEntrance',
     label: 'Entrance',
-    src: '/images/dungeon_start.png',
+    src: publicAssetUrl('images/dungeon_start.png'),
   },
   {
     type: 'graveyard',
     label: 'Graveyard',
-    src: '/images/graveyard.png',
+    src: publicAssetUrl('images/graveyard.png'),
   },
 ]
 
@@ -39,11 +40,6 @@ const spellIcons: Record<number, string> = {
 
 function getConfig(poi: PointOfInterestType): PoiConfig | null {
   return configs.find((config) => config.type === poi.type) ?? null
-}
-
-function getIconSrc(src: string) {
-  if (src.startsWith('/images/')) return src
-  return getIconLink(src)
 }
 
 function PointOfInterestComponent({ poi, iconScaling }: Props) {
@@ -59,7 +55,7 @@ function PointOfInterestComponent({ poi, iconScaling }: Props) {
   if (!isGenericItem && !config) return null
 
   const label = (isGenericItem ? poi.info!.description : config!.label) ?? ''
-  const iconSrc = isGenericItem ? getIconLink(spellIcon!) : getIconSrc(config!.src)
+  const iconSrc = isGenericItem ? getIconLink(spellIcon!) : config!.src
 
   const img = (
     <img

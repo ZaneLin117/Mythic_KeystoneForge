@@ -5,6 +5,7 @@ import { useDungeon } from '../../../store/routes/routeHooks.ts'
 import { compareColors, getPullColor } from '../../../util/colors.ts'
 import type { PullDetailed } from '../../../util/types.ts'
 import { ComparePullChip } from './PullCompareColumns.tsx'
+import { publicAssetUrl } from '../../../util/publicAssetUrl.ts'
 
 interface Props {
   comparePull: PullDetailed
@@ -46,7 +47,7 @@ export function CompareOrphanPull({ comparePull, comparePullIndex, isShiftHeld }
                 >
                   <img
                     className="h-full w-full rounded-full"
-                    src={`/npc_portraits/${mob.id}.png`}
+                    src={publicAssetUrl(`npc_portraits/${mob.id}.png`)}
                     alt={mob.name}
                   />
                   <div

@@ -6,6 +6,8 @@ import { ArrowUpTrayIcon, ClipboardIcon } from '@heroicons/react/24/outline'
 import { isEventInInput, shortcuts } from '../../../data/shortcuts.ts'
 import { useAppDispatch, useRootSelector } from '../../../store/storeUtil.ts'
 import { useI18n } from '../../../i18n/useI18n.ts'
+import { wclImportEnabled } from '../../../config/features.ts'
+import { addToast } from '../../../store/reducers/toastReducer.ts'
 
 const canPasteFromClipboard = typeof navigator.clipboard?.readText === 'function'
 
@@ -22,10 +24,14 @@ export function ImportRoute({ hidden }: Props) {
 
   const handlePaste = useCallback(
     (text: string) => {
-      if (text?.includes('warcraftlogs.com')) dispatch(importWclRoute({ url: text }))
-      else dispatch(importMdtRoute({ text }))
+      if (text?.includes('warcraftlogs.com')) {
+        if (wclImportEnabled) dispatch(importWclRoute({ url: text }))
+        else dispatch(addToast({ message: t('import.wclUnavailable'), type: 'info' }))
+      } else {
+        dispatch(importMdtRoute({ text }))
+      }
     },
-    [dispatch],
+    [dispatch, t],
   )
 
   const onGlobalPaste = useCallback(

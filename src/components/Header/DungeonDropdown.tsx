@@ -7,6 +7,7 @@ import { Button } from '../Common/Button.tsx'
 import { setDungeon } from '../../store/routes/routesReducer.ts'
 import { useI18n } from '../../i18n/useI18n.ts'
 import { localizedDungeonNames } from '../../i18n/dungeonNames.ts'
+import { publicAssetUrl } from '../../util/publicAssetUrl.ts'
 
 export function DungeonDropdown() {
   const dispatch = useAppDispatch()
@@ -34,7 +35,7 @@ export function DungeonDropdown() {
           >
             <img
               className="rounded border border-gray-600 w-10 h-10"
-              src={`/images/dungeons/${dungeon.key}.jpg`}
+              src={publicAssetUrl(`images/dungeons/${dungeon.key}.jpg`)}
               alt={names.full}
             />
             <div className="absolute bottom-0 text-outline">{names.short}</div>

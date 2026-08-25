@@ -102,6 +102,7 @@ const zhCN = {
   'import.tooltip': '从剪贴板导入 MDT 字符串',
   'import.title': '粘贴 MDT 字符串',
   'import.placeholder': '在此粘贴 MDT 字符串',
+  'import.wclUnavailable': '当前静态版本暂不支持 WCL 转换，请导入 MDT 字符串。',
   'import.existsTitle': '路线已存在',
   'import.existsPrompt': '要覆盖现有路线，还是创建一个副本？',
   'import.routeName': '路线名称：{name}',
@@ -257,6 +258,8 @@ const enUS: Record<TranslationKey, string> = {
   'import.tooltip': 'Import an MDT string from the clipboard',
   'import.title': 'Paste MDT string',
   'import.placeholder': 'Paste MDT string here',
+  'import.wclUnavailable':
+    'WCL conversion is unavailable in this static build. Import an MDT string instead.',
   'import.existsTitle': 'Route already exists',
   'import.existsPrompt': 'Would you like to overwrite it or make a copy?',
   'import.routeName': 'Route name: {name}',

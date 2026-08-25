@@ -17,6 +17,7 @@ node_modules
 dist
 dist-desktop
 dist-ssr
+dist-workbuddy
 release
 src-tauri/target
 src-tauri/gen/schemas

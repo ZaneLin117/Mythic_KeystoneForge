@@ -11,6 +11,7 @@ import { setMapMode } from '../../store/reducers/mapReducer.ts'
 import { TotalCount } from '../Sidebar/Pulls/TotalCount.tsx'
 import { useI18n } from '../../i18n/useI18n.ts'
 import { localizedMobName } from '../../i18n/mdtLocale.ts'
+import { publicAssetUrl } from '../../util/publicAssetUrl.ts'
 
 interface Props {
   pull: PullDetailed
@@ -49,7 +50,7 @@ export function LivePanel({ pull, prevPull, pullsDetailed }: Props) {
             <div key={mob.id} className="flex gap-2">
               <img
                 className="rounded-full w-6"
-                src={`/npc_portraits/${mob.id}.png`}
+                src={publicAssetUrl(`npc_portraits/${mob.id}.png`)}
                 alt={localizedMobName(mob, locale)}
               />
               {count}x {localizedMobName(mob, locale)}

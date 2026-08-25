@@ -4,6 +4,7 @@ import compileTime from 'vite-plugin-compile-time'
 import { localRankingsPlugin } from './vite/localRankingsPlugin.ts'
 
 export default defineConfig({
+  base: process.env.VITE_BASE_PATH || '/',
   plugins: [react(), splitVendorChunkPlugin(), compileTime(), localRankingsPlugin()],
   clearScreen: false,
   server: {

@@ -8,6 +8,7 @@ import { useDungeon } from '../../store/routes/routeHooks.ts'
 import type { DungeonKey } from '../../data/dungeonKeys.ts'
 import { useI18n } from '../../i18n/useI18n.ts'
 import { localizedDungeonNames } from '../../i18n/dungeonNames.ts'
+import { publicAssetUrl } from '../../util/publicAssetUrl.ts'
 
 export function MobileDungeonDropdown() {
   const dispatch = useAppDispatch()
@@ -40,7 +41,7 @@ export function MobileDungeonDropdown() {
       >
         <img
           className="rounded border border-gray-600 w-10 h-10"
-          src={`/images/dungeons/${selected.key}.jpg`}
+          src={publicAssetUrl(`images/dungeons/${selected.key}.jpg`)}
           alt={selectedNames.full}
         />
         <div className="absolute bottom-0 text-outline">{selectedNames.short}</div>
@@ -63,7 +64,7 @@ export function MobileDungeonDropdown() {
               >
                 <img
                   className="rounded border border-gray-600 w-10 h-10"
-                  src={`/images/dungeons/${dungeon.key}.jpg`}
+                  src={publicAssetUrl(`images/dungeons/${dungeon.key}.jpg`)}
                   alt={names.full}
                 />
                 <div className="absolute bottom-0 text-outline">{names.short}</div>
