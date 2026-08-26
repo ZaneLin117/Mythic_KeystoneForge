@@ -10,6 +10,7 @@ import { useMemo } from 'react'
 import { augmentPulls } from './augmentPulls.ts'
 import { useI18n } from '../../../i18n/useI18n.ts'
 import { PullList } from './PullList.tsx'
+import { groupNotesByNearestPull } from '../../../util/pullNotes.ts'
 
 export function MiniPulls() {
   const dispatch = useAppDispatch()
@@ -18,6 +19,10 @@ export function MiniPulls() {
   const route = useRoute()
   const selectedPull = useSelectedPull()
   const pullsDetailed = useMemo(() => augmentPulls(route.pulls, dungeon), [route.pulls, dungeon])
+  const notesByPull = useMemo(
+    () => groupNotesByNearestPull(route.pulls, route.notes, dungeon),
+    [route.pulls, route.notes, dungeon],
+  )
   const threePulls = [
     pullsDetailed[selectedPull - 1],
     pullsDetailed[selectedPull],
@@ -27,7 +32,7 @@ export function MiniPulls() {
   return (
     <Panel>
       <TotalCount pullsDetailed={pullsDetailed} curPullIndex={pullsDetailed.length - 1} />
-      <PullList pullsDetailed={threePulls} disableSorting />
+      <PullList pullsDetailed={threePulls} notesByPull={notesByPull} disableSorting />
       <Button
         short
         Icon={PlusIcon}

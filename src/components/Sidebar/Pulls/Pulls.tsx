@@ -16,6 +16,7 @@ import { useAppDispatch } from '../../../store/storeUtil.ts'
 import { TotalCount } from './TotalCount.tsx'
 import { usePullShortcuts } from './usePullShortcuts.ts'
 import { useI18n } from '../../../i18n/useI18n.ts'
+import { groupNotesByNearestPull } from '../../../util/pullNotes.ts'
 
 export function Pulls() {
   const dispatch = useAppDispatch()
@@ -25,6 +26,10 @@ export function Pulls() {
   const compareRoute = useCompareRoute()
   const comparison = useRouteComparison()
   const pullsDetailed = useMemo(() => augmentPulls(route.pulls, dungeon), [route.pulls, dungeon])
+  const notesByPull = useMemo(
+    () => groupNotesByNearestPull(route.pulls, route.notes, dungeon),
+    [route.pulls, route.notes, dungeon],
+  )
   const comparePullsDetailed = useMemo(
     () => (compareRoute ? augmentPulls(compareRoute.pulls, dungeon) : undefined),
     [compareRoute, dungeon],
@@ -37,6 +42,7 @@ export function Pulls() {
       <TotalCount pullsDetailed={pullsDetailed} comparePullsDetailed={comparePullsDetailed} />
       <PullList
         pullsDetailed={pullsDetailed}
+        notesByPull={notesByPull}
         comparePullsDetailed={comparePullsDetailed}
         comparison={comparison}
       />

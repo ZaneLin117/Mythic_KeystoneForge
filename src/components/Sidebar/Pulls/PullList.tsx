@@ -1,6 +1,6 @@
 ﻿import { Pull } from './Pull.tsx'
 import { useKeyHeld } from '../../../util/hooks/useKeyHeld.ts'
-import type { PullDetailed } from '../../../util/types.ts'
+import type { Note, PullDetailed } from '../../../util/types.ts'
 import type { ItemInterface } from 'react-sortablejs'
 import { ReactSortable } from 'react-sortablejs'
 import { useCallback, useMemo, useState } from 'react'
@@ -28,6 +28,7 @@ type SortablePull = PullDetailed &
 
 interface Props {
   pullsDetailed: PullDetailed[]
+  notesByPull: Note[][]
   comparePullsDetailed?: PullDetailed[]
   comparison?: RouteComparison | null
   disableSorting?: boolean
@@ -35,6 +36,7 @@ interface Props {
 
 export function PullList({
   pullsDetailed,
+  notesByPull,
   comparePullsDetailed,
   comparison,
   disableSorting,
@@ -140,6 +142,7 @@ export function PullList({
             <Pull
               key={pull.id}
               pull={pull}
+              notes={notesByPull[pull.index] ?? []}
               ghost={pull.filtered}
               compare={pull.compare}
               onRightClick={onRightClickPull}

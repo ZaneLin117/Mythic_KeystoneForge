@@ -1,4 +1,4 @@
-import type { PullDetailed } from '../../../util/types.ts'
+import type { Note, PullDetailed } from '../../../util/types.ts'
 import { getPullColor, lightenColor } from '../../../util/colors.ts'
 import { selectPull } from '../../../store/routes/routesReducer.ts'
 import { useEffect, useMemo, useRef } from 'react'
@@ -15,13 +15,14 @@ import { publicAssetUrl } from '../../../util/publicAssetUrl.ts'
 
 interface Props {
   pull: PullDetailed
+  notes: Note[]
   ghost?: boolean | undefined
   compare?: PullCompareInfo | undefined
   onRightClick: (e: MouseEvent, pullIndex: number) => void
   isShiftHeld?: boolean
 }
 
-export function Pull({ pull, ghost, compare, onRightClick, isShiftHeld }: Props) {
+export function Pull({ pull, notes, ghost, compare, onRightClick, isShiftHeld }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
   const dispatch = useAppDispatch()
@@ -114,6 +115,21 @@ export function Pull({ pull, ghost, compare, onRightClick, isShiftHeld }: Props)
           </div>
         </div>
       </div>
+      {!ghost && notes.length > 0 && (
+        <div
+          role="note"
+          className="mx-1 border-x border-b border-slate-500/70 bg-slate-950/80 px-2.5 py-2 text-sm leading-5 text-slate-200 shadow-inner"
+        >
+          {notes.map((note) => (
+            <p
+              key={`${note.position[0]}-${note.position[1]}-${note.text}`}
+              className="whitespace-pre-wrap [overflow-wrap:anywhere] [&:not(:first-child)]:mt-2"
+            >
+              {note.text.trim()}
+            </p>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
