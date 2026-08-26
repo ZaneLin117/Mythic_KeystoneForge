@@ -43,4 +43,10 @@ describe('boss guides', () => {
     expect(getBossGuide('murd', 234660)?.encounter).toBe('1号')
     expect(getBossGuide('murd', 234647)?.encounter).toBe('2号')
   })
+
+  it('maps the last three Vale encounters to the correct bosses', () => {
+    expect(getBossGuide('vale', 244887)?.encounter).toBe('2号')
+    expect(getBossGuide('vale', 245912)?.encounter).toBe('3号')
+    expect(getBossGuide('vale', 247676)?.encounter).toBe('尾王')
+  })
 })

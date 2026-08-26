@@ -148,9 +148,9 @@ export const bossGuides: Partial<Record<DungeonKey, Record<number, BossGuide>>> 
     243028: vale1,
     243029: vale1,
     243030: vale1,
-    245912: vale2,
-    247676: vale3,
-    244887: valeFinal,
+    244887: vale2,
+    245912: vale3,
+    247676: valeFinal,
   },
   void: {
     238887: void1,
