@@ -182,11 +182,7 @@ export function SampleRoutes() {
             : 'border-slate-500/60 bg-slate-900/90 text-cyan-50 hover:border-cyan-300/60 hover:bg-slate-800'
         }`}
       >
-        <MagnifyingGlassIcon width={19} height={19} aria-hidden="true" />
-        <span className="hidden xl:inline">{t('route.sampleRoutes')}</span>
-        <span className="min-w-5 rounded-full bg-cyan-950/80 px-1.5 py-0.5 text-center text-[11px] text-cyan-100">
-          {options.length}
-        </span>
+        <span>{t('route.sampleRoutes')}</span>
         <ChevronDownIcon
           width={17}
           height={17}
