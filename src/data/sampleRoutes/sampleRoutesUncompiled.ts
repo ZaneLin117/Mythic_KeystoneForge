@@ -3,6 +3,7 @@ import { type DungeonKey, dungeonKeys } from '../dungeonKeys.ts'
 import { decodeMdtString } from '../../util/mdt/mdt2.ts'
 import { mdtRouteToRoute } from '../../util/mdtUtil.ts'
 import { beifengRouteStrings } from './beifengRouteStrings.ts'
+import { huolingRouteStrings } from './huolingRouteStrings.ts'
 
 type SampleRouteDefinition = Omit<SampleRoute, 'route'> & {
   mdt: string
@@ -73,6 +74,14 @@ for (const dungeonKey of dungeonKeys) {
     mdt: beifengRouteStrings[dungeonKey],
     name: '12.1 正式版（8.25）',
     author: '北风',
+  })
+}
+
+for (const dungeonKey of dungeonKeys) {
+  sampleRouteDefinitions[dungeonKey].push({
+    mdt: huolingRouteStrings[dungeonKey],
+    name: 'NGA 火灵hl',
+    author: '火灵hl',
   })
 }
 

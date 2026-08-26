@@ -22,11 +22,14 @@ const seasonFixtures = Object.entries(sampleRouteDefinitions).flatMap(([dungeonK
   })),
 )
 
-test('every dungeon includes one network route credited to 北风', () => {
-  for (const definitions of Object.values(sampleRouteDefinitions)) {
-    expect(definitions.filter((definition) => definition.author === '北风')).toHaveLength(1)
-  }
-})
+test.each(['北风', '火灵hl'])(
+  'every dungeon includes one network route credited to %s',
+  (author) => {
+    for (const definitions of Object.values(sampleRouteDefinitions)) {
+      expect(definitions.filter((definition) => definition.author === author)).toHaveLength(1)
+    }
+  },
+)
 
 describe.each(Object.entries(fixtures))('%s', (_name, mdtString) => {
   test('decodes to a route', async () => {
