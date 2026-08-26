@@ -109,9 +109,7 @@ export function mdtRouteToRoute(mdtRoute: MdtRoute): Route {
     throw new Error(`Could not find dungeon with MDT index ${mdtRoute.value.currentDungeonIdx}`)
 
   const mdtObjects = (
-    Array.isArray(mdtRoute.objects)
-      ? mdtRoute.objects
-      : Object.values(mdtRoute.objects ?? {})
+    Array.isArray(mdtRoute.objects) ? mdtRoute.objects : Object.values(mdtRoute.objects ?? {})
   ).filter(Boolean)
 
   return {
@@ -149,9 +147,13 @@ export function mdtRouteToRoute(mdtRoute: MdtRoute): Route {
     assignments: Object.fromEntries(
       Object.entries(mdtRoute.value.enemyAssignments ?? {}).flatMap(
         ([enemyIndex, spawnArrayOrMap]) => {
+          if (spawnArrayOrMap === null || typeof spawnArrayOrMap !== 'object') return []
+
           const isArray = Array.isArray(spawnArrayOrMap)
           return Object.entries(spawnArrayOrMap)
             .map(([spawnIndex, markIndex]) => {
+              if (typeof markIndex !== 'number' || !marks[markIndex - 1]) return null
+
               const adjustedSpawnIndex = isArray ? Number(spawnIndex) + 1 : Number(spawnIndex)
               const mobSpawn = dungeon.mobSpawnsList.find(
                 ({ mob, spawn }) =>

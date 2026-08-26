@@ -31,6 +31,15 @@ test.each(['北风', '火灵hl'])(
   },
 )
 
+test('the 硬玩复仇 network set includes its seven supplied dungeons', () => {
+  const includedDungeons = Object.entries(sampleRouteDefinitions)
+    .filter(([, definitions]) => definitions.some((definition) => definition.author === '硬玩复仇'))
+    .map(([dungeonKey]) => dungeonKey)
+    .sort()
+
+  expect(includedDungeons).toEqual(['fang', 'kr', 'nalo', 'rlp', 'tos', 'vale', 'void'])
+})
+
 describe.each(Object.entries(fixtures))('%s', (_name, mdtString) => {
   test('decodes to a route', async () => {
     const route = await decodeMdtString(mdtString)

@@ -4,6 +4,7 @@ import { decodeMdtString } from '../../util/mdt/mdt2.ts'
 import { mdtRouteToRoute } from '../../util/mdtUtil.ts'
 import { beifengRouteStrings } from './beifengRouteStrings.ts'
 import { huolingRouteStrings } from './huolingRouteStrings.ts'
+import { yingwanRouteStrings } from './yingwanRouteStrings.ts'
 
 type SampleRouteDefinition = Omit<SampleRoute, 'route'> & {
   mdt: string
@@ -82,6 +83,17 @@ for (const dungeonKey of dungeonKeys) {
     mdt: huolingRouteStrings[dungeonKey],
     name: 'NGA 火灵hl',
     author: '火灵hl',
+  })
+}
+
+for (const dungeonKey of dungeonKeys) {
+  const mdt = yingwanRouteStrings[dungeonKey]
+  if (!mdt) continue
+
+  sampleRouteDefinitions[dungeonKey].push({
+    mdt,
+    name: 'B站-硬玩复仇',
+    author: '硬玩复仇',
   })
 }
 
