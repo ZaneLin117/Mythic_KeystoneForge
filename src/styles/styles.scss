@@ -47,6 +47,16 @@ $fancy-yellow: #9a6b13;
     0 10px 32px rgba(2, 8, 23, 0.45);
 }
 
+.header-primary-row {
+  max-width: 100%;
+}
+
+@media (min-width: 520px) {
+  .header-primary-row {
+    max-width: calc(100% - var(--header-sidebar-offset));
+  }
+}
+
 .brand-mark {
   display: grid;
   width: 38px;

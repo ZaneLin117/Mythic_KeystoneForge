@@ -8,6 +8,8 @@ import { MobileDungeonDropdown } from './MobileDungeonDropdown.tsx'
 import { MobSearch } from './MobSearch.tsx'
 import { MapIcon } from '@heroicons/react/24/outline'
 import { useI18n } from '../../i18n/useI18n.ts'
+import type { CSSProperties } from 'react'
+import { SampleRoutes } from '../Sidebar/Buttons/SampleRoutes.tsx'
 
 export function Header() {
   const { t } = useI18n()
@@ -20,10 +22,8 @@ export function Header() {
       <div className={`pointer-events-none flex flex-col items-start gap-4`}>
         {!isLive && (
           <div
-            className="hidden sm:flex gap-4 flex-nowrap items-center pointer-events-auto"
-            style={{
-              maxWidth: `calc(100% - ${actualSidebarWidth}px)`,
-            }}
+            className="header-primary-row flex flex-nowrap items-start gap-2 pointer-events-auto sm:items-center sm:gap-4"
+            style={{ '--header-sidebar-offset': `${actualSidebarWidth}px` } as CSSProperties}
           >
             <div className="brand-card hidden lg:flex min-w-fit items-center gap-2.5 px-3 py-2">
               <div className="brand-mark">
@@ -36,12 +36,13 @@ export function Header() {
                 </div>
               </div>
             </div>
-            <DungeonDropdown />
-          </div>
-        )}
-        {!isLive && (
-          <div className="pointer-events-auto sm:hidden">
-            <MobileDungeonDropdown />
+            <div className="hidden min-w-0 flex-1 sm:block">
+              <DungeonDropdown />
+            </div>
+            <div className="sm:hidden">
+              <MobileDungeonDropdown />
+            </div>
+            <SampleRoutes />
           </div>
         )}
         <div

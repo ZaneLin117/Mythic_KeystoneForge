@@ -3,7 +3,6 @@ import { ImportRoute } from './Buttons/ImportRoute.tsx'
 import { NewRoute } from './Buttons/NewRoute.tsx'
 import { DeleteRoute } from './Buttons/DeleteRoute.tsx'
 import { DuplicateRoute } from './Buttons/DuplicateRoute.tsx'
-import { SampleRoutes } from './Buttons/SampleRoutes.tsx'
 import { ExportRoute } from './Buttons/ExportRoute.tsx'
 import { ShareRoute } from './Buttons/ShareRoute.tsx'
 import { RouteDropdown } from './RouteDropdown.tsx'
@@ -73,7 +72,6 @@ export function RouteDetails({ collapsed }: Props) {
         <DuplicateRoute />
         <DeleteRoute />
       </div>
-      <SampleRoutes hidden={collapsed} />
       <ImportRoute hidden={collapsed} />
       <div className={`flex gap-1 ${collapsed ? '[&]:hidden' : ''}`}>
         <ExportRoute hidden={collapsed} />
