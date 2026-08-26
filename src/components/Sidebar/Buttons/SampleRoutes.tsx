@@ -33,7 +33,10 @@ import { getIconLink } from '../../../data/spells/spells.ts'
 
 type SampleRouteOption = SampleRoute & DropdownOption
 
-const filterModes = ['varied', 'top', 'easy', 'spec'] as const
+const routeSources = ['wcl', 'network'] as const
+type RouteSource = (typeof routeSources)[number]
+
+const filterModes = ['varied', 'top', 'spec'] as const
 type FilterMode = (typeof filterModes)[number]
 
 interface Props {
@@ -61,12 +64,16 @@ export function SampleRoutes({ hidden }: Props) {
   const dungeon = useDungeon()
   const route = useActualRoute()
   const compareRoute = useActualCompareRoute()
+  const [selectedSource, setSelectedSource] = useState<RouteSource>('wcl')
   const [selectedMode, setSelectedMode] = useState<FilterMode | null>(null)
   const [selectedSpec, setSelectedSpec] = useState<Spec>(tankSpecs[0]!)
   const { sampleRoutes: routes, loading } = useSampleRoutes(dungeon.key)
 
+  const wclRoutes = useMemo(() => routes.filter((route) => route.wclRanking), [routes])
+  const networkRoutes = useMemo(() => routes.filter((route) => !route.wclRanking), [routes])
+
   const routesByMode = useMemo(() => {
-    const rankings = routes.filter((route) => route.wclRanking).map((route) => route.wclRanking!)
+    const rankings = wclRoutes.map((route) => route.wclRanking!)
 
     function pickRankingsFromFilterMode(mode: FilterMode) {
       if (mode === 'spec') {
@@ -86,28 +93,29 @@ export function SampleRoutes({ hidden }: Props) {
 
         return [
           mode,
-          routes.filter(
-            (route) =>
-              (mode === 'easy' && !route.wclRanking) ||
-              (route.wclRanking && pickedRankings.includes(route.wclRanking)),
+          wclRoutes.filter(
+            (route) => route.wclRanking && pickedRankings.includes(route.wclRanking),
           ),
         ]
       }),
     ) as Record<FilterMode, SampleRoute[]>
-  }, [routes, selectedSpec])
+  }, [selectedSpec, wclRoutes])
 
   const mode =
     selectedMode ?? filterModes.find((mode) => routesByMode[mode].length) ?? filterModes[0]
 
   const options: SampleRouteOption[] = useMemo(() => {
-    return routesByMode[mode].map<SampleRouteOption>(({ route, wclRanking }) => ({
+    const visibleRoutes = selectedSource === 'network' ? networkRoutes : routesByMode[mode]
+
+    return visibleRoutes.map<SampleRouteOption>(({ route, wclRanking, author }) => ({
       id: route.uid,
       route,
       wclRanking,
+      author,
       content: (
         <div className="flex flex-col gap-0.5 overflow-hidden">
-          <div className="flex justify-between">
-            <div className="flex items-center gap-1">
+          <div className="flex justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-1">
               {wclRanking && 'rank' in wclRanking && (
                 <div className="rounded-sm px-1 bg-cyan-800 text-xs">
                   {t('route.rank', { rank: wclRanking.rank ?? '-' })}
@@ -132,6 +140,7 @@ export function SampleRoutes({ hidden }: Props) {
               </div>
             )}
           </div>
+          {author && <div className="text-xs text-cyan-200">{t('route.author', { author })}</div>}
           <div className="flex gap-1 flex-wrap">
             {wclRanking &&
               wclRanking.team.toSorted(sortTeam).map((member, idx) => (
@@ -148,7 +157,7 @@ export function SampleRoutes({ hidden }: Props) {
         </div>
       ),
     }))
-  }, [routesByMode, mode, t])
+  }, [mode, networkRoutes, routesByMode, selectedSource, t])
 
   const onSelect = useCallback(
     (option: SampleRouteOption) => {
@@ -180,44 +189,69 @@ export function SampleRoutes({ hidden }: Props) {
     setSelectedSpec((prev) => prev ?? tankSpecs[0]!)
   }, [])
 
+  const handleSourceChange = useCallback((source: RouteSource) => {
+    setSelectedSource(source)
+  }, [])
+
   const onOpen = useCallback(() => {
     trackEvent('sample_routes_open', { dungeon: dungeon.key })
   }, [dungeon.key])
 
   const filterHeader = (
     <div className="flex flex-col gap-1">
-      {loading && (
+      {selectedSource === 'wcl' && loading && (
         <div className="flex items-center gap-1.5 text-sm text-gray-300">
-          <ArrowPathIcon width={16} height={16} className="animate-spin" />
+          <ArrowPathIcon width={16} height={16} className="animate-spin" aria-hidden="true" />
           {t('route.loadingRanked')}
         </div>
       )}
-      <div className="flex items-center gap-1 justify-between">
-        {filterModes.map((m) => (
+      <div className="grid grid-cols-2 gap-1" role="group" aria-label={t('route.source.label')}>
+        {routeSources.map((source) => (
           <button
-            key={m}
-            onClick={() => handleModeChange(m)}
-            className={`text-sm px-1 py-0.5 rounded transition-colors ${
-              mode === m
-                ? 'bg-white/25 text-white'
-                : 'text-gray-300 hover:bg-white/15 hover:text-white'
+            key={source}
+            type="button"
+            aria-pressed={selectedSource === source}
+            onClick={() => handleSourceChange(source)}
+            className={`min-h-8 rounded border px-2 py-1 text-sm font-semibold transition-colors ${
+              selectedSource === source
+                ? 'border-cyan-300/70 bg-cyan-700/60 text-white'
+                : 'border-white/15 text-gray-300 hover:border-white/30 hover:bg-white/15 hover:text-white'
             }`}
           >
-            {m === 'varied'
-              ? t('route.filter.varied')
-              : m === 'easy'
-                ? t('route.filter.easy')
-                : m === 'top'
-                  ? t('route.filter.top')
-                  : t('route.filter.tank')}
+            {t(source === 'wcl' ? 'route.source.wcl' : 'route.source.network')}
           </button>
         ))}
       </div>
-      {mode === 'spec' && (
+      {selectedSource === 'wcl' && (
+        <div className="flex items-center gap-1 justify-between">
+          {filterModes.map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={mode === m}
+              onClick={() => handleModeChange(m)}
+              className={`rounded px-1 py-0.5 text-sm transition-colors ${
+                mode === m
+                  ? 'bg-white/25 text-white'
+                  : 'text-gray-300 hover:bg-white/15 hover:text-white'
+              }`}
+            >
+              {m === 'varied'
+                ? t('route.filter.varied')
+                : m === 'top'
+                  ? t('route.filter.top')
+                  : t('route.filter.tank')}
+            </button>
+          ))}
+        </div>
+      )}
+      {selectedSource === 'wcl' && mode === 'spec' && (
         <div className="flex items-center gap-1 justify-between">
           {tankSpecs.map((spec) => (
             <button
               key={`${spec.class}-${spec.spec}`}
+              type="button"
+              aria-pressed={selectedSpec?.class === spec.class && selectedSpec?.spec === spec.spec}
               onClick={() => setSelectedSpec(spec)}
               className={`rounded overflow-hidden border ${selectedSpec?.class === spec.class && selectedSpec?.spec === spec.spec ? 'border-white' : 'border-transparent'}`}
             >

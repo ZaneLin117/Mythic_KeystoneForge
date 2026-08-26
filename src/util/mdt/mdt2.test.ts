@@ -14,10 +14,19 @@ const rawCbor = (str: string) => inflateRaw(base64ToBytes(str.slice('!~MDT2~'.le
 const encodeRawMdt = async (value: unknown) =>
   '!~MDT2~' + bytesToBase64(await deflateRaw(encodeCbor(value)))
 
-const seasonFixtures = Object.entries(sampleRouteDefinitions).map(([dungeonKey, definitions]) => ({
-  dungeonKey: dungeonKey as DungeonKey,
-  mdtString: definitions[0]!.mdt,
-}))
+const seasonFixtures = Object.entries(sampleRouteDefinitions).flatMap(([dungeonKey, definitions]) =>
+  definitions.map((definition) => ({
+    dungeonKey: dungeonKey as DungeonKey,
+    routeName: definition.name ?? 'unnamed',
+    mdtString: definition.mdt,
+  })),
+)
+
+test('every dungeon includes one network route credited to 北风', () => {
+  for (const definitions of Object.values(sampleRouteDefinitions)) {
+    expect(definitions.filter((definition) => definition.author === '北风')).toHaveLength(1)
+  }
+})
 
 describe.each(Object.entries(fixtures))('%s', (_name, mdtString) => {
   test('decodes to a route', async () => {
@@ -80,8 +89,9 @@ test('rejects invalid CBOR separately from compression errors', async () => {
 })
 
 test('rejects a decoded value that is not a route', async () => {
-  await expect(encodeRawMdt({ text: 'broken', value: { pulls: [] } }).then(decodeMdtString)).rejects
-    .toMatchObject({ stage: 'structure' })
+  await expect(
+    encodeRawMdt({ text: 'broken', value: { pulls: [] } }).then(decodeMdtString),
+  ).rejects.toMatchObject({ stage: 'structure' })
 })
 
 test('rejects oversized encoded and decompressed inputs', async () => {
@@ -102,31 +112,34 @@ test('rejects CBOR nested beyond the decoder limit', async () => {
   await expect(encodeRawMdt(value).then(decodeMdtString)).rejects.toMatchObject({ stage: 'cbor' })
 })
 
-describe.each(seasonFixtures)('$dungeonKey embedded route', ({ dungeonKey, mdtString }) => {
-  test('matches the current dungeon and survives a full string round trip', async () => {
-    const route = await decodeMdtString(mdtString)
+describe.each(seasonFixtures)(
+  '$dungeonKey $routeName embedded route',
+  ({ dungeonKey, mdtString }) => {
+    test('matches the current dungeon and survives a full string round trip', async () => {
+      const route = await decodeMdtString(mdtString)
 
-    expect(route.value.currentDungeonIdx).toBe(dungeonsByKey[dungeonKey].mdt.dungeonIndex)
-    expect(route.value.pulls.length).toBeGreaterThan(0)
-    expect(await decodeMdtString(await encodeMdtString(route))).toEqual(route)
-  })
+      expect(route.value.currentDungeonIdx).toBe(dungeonsByKey[dungeonKey].mdt.dungeonIndex)
+      expect(route.value.pulls.length).toBeGreaterThan(0)
+      expect(await decodeMdtString(await encodeMdtString(route))).toEqual(route)
+    })
 
-  test('only references enemy clones present in the current dungeon data', async () => {
-    const route = await decodeMdtString(mdtString)
-    const dungeon = dungeonsByKey[dungeonKey]
-    const knownClones = new Set(
-      dungeon.mdt.enemies.flatMap((enemy) =>
-        enemy.spawns.map((spawn) => `${enemy.enemyIndex}-${spawn.idx}`),
-      ),
-    )
-    const referencedClones = route.value.pulls.flatMap((pull) =>
-      Object.entries(pull).flatMap(([enemyIndex, cloneIndexes]) =>
-        Array.isArray(cloneIndexes)
-          ? cloneIndexes.map((cloneIndex) => `${enemyIndex}-${cloneIndex}`)
-          : [],
-      ),
-    )
+    test('only references enemy clones present in the current dungeon data', async () => {
+      const route = await decodeMdtString(mdtString)
+      const dungeon = dungeonsByKey[dungeonKey]
+      const knownClones = new Set(
+        dungeon.mdt.enemies.flatMap((enemy) =>
+          enemy.spawns.map((spawn) => `${enemy.enemyIndex}-${spawn.idx}`),
+        ),
+      )
+      const referencedClones = route.value.pulls.flatMap((pull) =>
+        Object.entries(pull).flatMap(([enemyIndex, cloneIndexes]) =>
+          Array.isArray(cloneIndexes)
+            ? cloneIndexes.map((cloneIndex) => `${enemyIndex}-${cloneIndex}`)
+            : [],
+        ),
+      )
 
-    expect(referencedClones.filter((clone) => !knownClones.has(clone))).toEqual([])
-  })
-})
+      expect(referencedClones.filter((clone) => !knownClones.has(clone))).toEqual([])
+    })
+  },
+)

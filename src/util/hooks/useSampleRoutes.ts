@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { DungeonKey } from '../../data/dungeonKeys.ts'
 import type { SampleRoute } from '../types.ts'
-import { easySampleRoutes } from '../../data/sampleRoutes/sampleRoutes.ts'
+import { networkSampleRoutes } from '../../data/sampleRoutes/sampleRoutes.ts'
 import { fetchRankedRoutes } from '../../api/rankingsApi.ts'
 import { rankingsBaseUrl } from '../../api/api.ts'
 import { sortSampleRoutes } from '../wclRankings.ts'
 
 /**
- * Merges the compiled-in "easy" routes with the WCL-ranked routes fetched from static storage.
+ * Merges the compiled-in network routes with the WCL-ranked routes fetched from static storage.
  * Fetches on mount so the dropdown is already populated by the time it's opened.
  */
 export function useSampleRoutes(dungeonKey: DungeonKey) {
@@ -32,7 +32,7 @@ export function useSampleRoutes(dungeonKey: DungeonKey) {
         }
       })
       .catch((e: unknown) => {
-        // The easy routes still work, so degrade rather than blocking the dropdown.
+        // The network routes still work, so degrade rather than blocking the dropdown.
         console.error('Failed to load ranked sample routes', e)
         if (!cancelled) {
           setRankedRoutes([])
@@ -50,7 +50,7 @@ export function useSampleRoutes(dungeonKey: DungeonKey) {
   }, [dungeonKey])
 
   const sampleRoutes = useMemo(
-    () => [...easySampleRoutes[dungeonKey], ...(rankedRoutes ?? [])].toSorted(sortSampleRoutes),
+    () => [...networkSampleRoutes[dungeonKey], ...(rankedRoutes ?? [])].toSorted(sortSampleRoutes),
     [dungeonKey, rankedRoutes],
   )
 

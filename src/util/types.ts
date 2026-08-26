@@ -122,6 +122,7 @@ export type MdtRoute = {
 export type SampleRoute = {
   route: Route
   wclRanking?: WclRanking
+  author?: string
 }
 
 export type IconComponent = ForwardRefExoticComponent<PropsWithoutRef<SVGProps<SVGSVGElement>>>
