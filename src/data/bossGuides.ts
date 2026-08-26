@@ -132,9 +132,9 @@ const tosFinal = guide(
 
 export const bossGuides: Partial<Record<DungeonKey, Record<number, BossGuide>>> = {
   murd: {
-    234647: murd1,
+    234648: murd1,
     234660: murd1,
-    234648: murd2,
+    234647: murd2,
     234649: murd3,
     234763: murdFinal,
   },

@@ -37,4 +37,10 @@ describe('boss guides', () => {
     expect(mappedGuides).toHaveLength(37)
     expect(new Set(mappedGuides)).toHaveLength(28)
   })
+
+  it('maps the first two Conspirator Path encounters to the correct bosses', () => {
+    expect(getBossGuide('murd', 234648)?.encounter).toBe('1号')
+    expect(getBossGuide('murd', 234660)?.encounter).toBe('1号')
+    expect(getBossGuide('murd', 234647)?.encounter).toBe('2号')
+  })
 })
