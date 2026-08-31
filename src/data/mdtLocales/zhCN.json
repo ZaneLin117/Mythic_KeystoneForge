@@ -784,5 +784,6 @@
   "undoDrawing": "撤销绘图",
   "update available": "有可用更新",
   "zoomIn": "放大",
-  "zoomOut": "缩小"
+  "zoomOut": "缩小",
+  "Clone forces override (blank = default)": "克隆敌方部队覆盖值（留空使用默认值）"
 }
