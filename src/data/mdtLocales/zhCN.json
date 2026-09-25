@@ -681,6 +681,7 @@
   "Unruly Textbook": "任性的教科书",
   "Unstable Phantom": "不稳定的幻影",
   "Unstable Voidling": "不稳定的虚空之子",
+  "Unsupported route format. Only !~MDT2~ routes are supported.": "不支持的路线格式。仅支持 !~MDT2~ 路线。",
   "Use /mdt reset to restore the default position and scale of MDT.": "输入 /mdt reset 来重置MDT窗口, 恢复成默认大小和位置",
   "Use as a starting point:": "以此为起点:",
   "Use forces count": "在侧边栏使用部队计数",
