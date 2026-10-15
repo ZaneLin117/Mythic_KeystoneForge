@@ -314,6 +314,7 @@
   "Decrease Text Size": "减小字号",
   "Increase Text Size": "增大字号",
   "textSizeHint": "字号\n在此滚动鼠标滚轮，或按住Ctrl在文本上滚动以更改。",
+  "rotateTextHint": "旋转文本\n拖动以旋转文本。按住Shift可按15°的间隔对齐。",
   "Align Left": "左对齐",
   "Align Center": "居中",
   "Align Right": "右对齐",
