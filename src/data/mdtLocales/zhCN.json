@@ -1,6 +1,5 @@
 {
   "%s HP": "%s 血量",
-  "(G %d)": "(G %d)",
   "*Live*": "*连线*",
   "+ Add pull": "+ 新增拉怪",
   "<New Preset>": "<新路线>",
@@ -254,6 +253,7 @@
   "Frigid Mauler": "酷寒重殴者",
   "Frostfang": "霜牙",
   "Furious Vilefiend": "狂怒的邪犬",
+  "G%d:": "G%d:",
   "Galvazzt": "加瓦兹特",
   "Gemellus": "吉美尔鲁斯",
   "General": "常规",
@@ -407,6 +407,7 @@
   "Luminous Thornmaw": "发光的棘喉兽",
   "MDT Error": "MDT 错误",
   "MDT Legacy maps": "MDT Legacy 地图",
+  "MDT Scale": "MDT 大小",
   "MDT Set Focus Macro": "MDT 设置焦点宏",
   "MDT: Cannot add enemy - you are trying to add too many enemies of the same kind": "MDT: 无法添加敌人 - 你正在尝试添加过多同类敌人",
   "MDT: Spells for %s:": "MDT: %s 的法术:",
