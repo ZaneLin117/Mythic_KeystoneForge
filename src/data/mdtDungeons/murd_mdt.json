@@ -3391,28 +3391,28 @@
       }
     },
     {
-      "type": "genericItem",
+      "type": "genericAssignablePOI",
       "pos": [
         -177.22,
         231.4
       ],
       "info": {
         "description": null,
-        "texture": 1003586,
-        "spellId": 1270638,
+        "texture": 2056011,
+        "spellId": null,
         "size": 10
       }
     },
     {
-      "type": "genericItem",
+      "type": "genericAssignablePOI",
       "pos": [
         -236.55,
         294.35
       ],
       "info": {
         "description": null,
-        "texture": 1003586,
-        "spellId": 1270638,
+        "texture": 2056011,
+        "spellId": null,
         "size": 10
       }
     },
@@ -3430,15 +3430,15 @@
       }
     },
     {
-      "type": "genericItem",
+      "type": "genericAssignablePOI",
       "pos": [
-        -202.74,
-        256.92
+        -201.78,
+        257.45
       ],
       "info": {
         "description": null,
-        "texture": 1003586,
-        "spellId": 1270638,
+        "texture": 2056011,
+        "spellId": null,
         "size": 10
       }
     },
@@ -3456,7 +3456,7 @@
       }
     },
     {
-      "type": "genericItem",
+      "type": "genericAssignablePOI",
       "pos": [
         -172.47,
         123.35
@@ -3469,7 +3469,7 @@
       }
     },
     {
-      "type": "genericItem",
+      "type": "genericAssignablePOI",
       "pos": [
         -183.01,
         150.89
@@ -3482,7 +3482,7 @@
       }
     },
     {
-      "type": "genericItem",
+      "type": "genericAssignablePOI",
       "pos": [
         -152.79,
         135.24
@@ -3505,6 +3505,32 @@
         "texture": 1120423,
         "spellId": 1223607,
         "size": 15
+      }
+    },
+    {
+      "type": "genericAssignablePOI",
+      "pos": [
+        -167.9,
+        368.24
+      ],
+      "info": {
+        "description": null,
+        "texture": 2056011,
+        "spellId": null,
+        "size": 10
+      }
+    },
+    {
+      "type": "genericAssignablePOI",
+      "pos": [
+        -183.5,
+        351.87
+      ],
+      "info": {
+        "description": null,
+        "texture": 1003586,
+        "spellId": 1270638,
+        "size": 10
       }
     }
   ]
