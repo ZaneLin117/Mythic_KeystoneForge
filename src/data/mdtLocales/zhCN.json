@@ -752,7 +752,7 @@
   "Unsupported route format. Only !~MDT2~ routes are supported.": "不支持的路线格式。仅支持 !~MDT2~ 路线。",
   "Use /mdt reset to restore the default position and scale of MDT.": "输入 /mdt reset 来重置MDT窗口, 恢复成默认大小和位置",
   "Use as a starting point:": "以此为起点:",
-  "Use forces count": "在侧边栏使用敌方部队计数",
+  "Use forces count": "在侧边栏和拉怪标签中使用敌方部队计数",
   "Use macro instead of keybind": "使用宏而非按键绑定。",
   "Venom Leech": "毒液水蛭",
   "Version Check / Change Log": "版本检查 / 更新日志",
