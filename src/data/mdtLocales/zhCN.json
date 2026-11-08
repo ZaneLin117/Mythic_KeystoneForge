@@ -334,6 +334,7 @@
   "routeBatchOverwriteTooltip": "替换你的路线'%s'。不勾选时，路线将作为副本导入。",
   "routeBatchUnknownDungeon": "此路线所属的地下城不在你的 MDT 版本中。请更新 MDT 后再导入。",
   "Search routes": "搜索路线",
+  "Drag to reorder": "拖动以排序",
   "Selected: %d": "已选择：%d",
   "Start live session": "开始实时连线",
   "Join a group first": "请先加入队伍",
